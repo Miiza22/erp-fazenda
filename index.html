@@ -167,6 +167,11 @@ cursor:pointer;
 color:white;
 font-weight:bold;
 font-size:14px;
+transition:0.2s;
+}
+
+button:hover{
+transform:scale(1.03);
 }
 
 .btn-ia{
@@ -200,8 +205,10 @@ font-weight:bold;
 
 #reader{
 width:100%;
-max-width:450px;
+max-width:500px;
 margin-top:20px;
+overflow:hidden;
+border-radius:18px;
 }
 
 table{
@@ -549,6 +556,9 @@ localStorage.getItem('produtos')
 
 let filtroAtual = "todos";
 
+let cameraAtiva = false;
+let ultimaLeitura = "";
+
 const categorias = [
 'alimenticio',
 'bebidas',
@@ -644,6 +654,17 @@ return (
 
 async function abrirCamera(){
 
+if(cameraAtiva){
+return;
+}
+
+cameraAtiva = true;
+
+const reader =
+document.getElementById("reader");
+
+reader.innerHTML = "";
+
 try{
 
 const html5QrCode =
@@ -652,37 +673,65 @@ new Html5Qrcode("reader");
 await html5QrCode.start(
 
 {
-facingMode:"environment"
+facingMode:{
+exact:"environment"
+}
 },
 
 {
-fps:10,
-qrbox:250
+fps:15,
+
+qrbox:{
+width:280,
+height:180
+},
+
+aspectRatio:1.7,
+
+disableFlip:false
 },
 
 (decodedText)=>{
+
+if(decodedText === ultimaLeitura){
+return;
+}
+
+ultimaLeitura = decodedText;
+
+navigator.vibrate?.(200);
 
 document.getElementById(
 'codigoBarras'
 ).value = decodedText;
 
-html5QrCode.stop();
+setTimeout(async()=>{
+
+await html5QrCode.stop();
+
+cameraAtiva = false;
 
 buscarProdutoOnline();
 
+},1200);
+
 },
 
-()=>{}
+(errorMessage)=>{
+
+}
 
 );
 
 }catch(erro){
 
-alert(
-'Erro ao acessar câmera'
-);
-
 console.log(erro);
+
+cameraAtiva = false;
+
+alert(
+"Erro ao acessar câmera traseira"
+);
 
 }
 
