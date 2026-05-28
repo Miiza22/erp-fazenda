@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>
+ERP IA Fazenda Supermercado
+</title>
+
+<link rel="manifest" href="manifest.json">
+
+<meta name="theme-color"
+content="#111827">
+
+<meta name="mobile-web-app-capable"
+content="yes">
+
+<meta name="apple-mobile-web-app-capable"
+content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style"
+content="black-translucent">
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+font-family:Arial;
+background:#f3f4f6;
+overflow-x:hidden;
+position:relative;
+}
+
+body::before{
+content:"";
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background-image:url('https://i.imgur.com/zYIlgBl.png');
+background-repeat:no-repeat;
+background-position:center;
+background-size:65%;
+opacity:0.05;
+z-index:-1;
+}
+
+header{
+background:linear-gradient(
+90deg,
+#111827,
+#1f2937
+);
+
+color:white;
+padding:20px;
+text-align:center;
+font-size:34px;
+font-weight:bold;
+
+box-shadow:
+0 4px 15px rgba(0,0,0,0.2);
+}
+
+.logo-titulo{
+color:#f97316;
+}
+
+.container{
+width:95%;
+max-width:1700px;
+margin:20px auto;
+}
+
+.card{
+background:rgba(255,255,255,0.97);
+border-radius:18px;
+padding:25px;
+margin-bottom:25px;
+
+box-shadow:
+0 8px 25px rgba(0,0,0,0.08);
+}
+
+.card h2{
+margin-bottom:20px;
+color:#111827;
+}
+
+.flex{
+display:flex;
+flex-wrap:wrap;
+gap:12px;
+margin-bottom:15px;
+}
+
+input,
+select{
+flex:1;
+min-width:170px;
+padding:14px;
+border-radius:12px;
+border:1px solid #d1d5db;
+font-size:15px;
+}
+
+.campo-produto{
+min-width:320px !important;
+flex:2 !important;
+}
+
+.campo-estoque{
+max-width:75px !important;
+min-width:75px !important;
+flex:0.4 !important;
+}
+
+.campo-custo{
+max-width:85px !important;
+min-width:85px !important;
+flex:0.5 !important;
+}
+
+.campo-preco{
+max-width:85px !important;
+min-width:85px !important;
+flex:0.5 !important;
+}
+
+.coluna-produto{
+min-width:280px;
+}
+
+.coluna-estoque{
+width:75px;
+max-width:75px;
+}
+
+.coluna-custo{
+width:85px;
+max-width:85px;
+}
+
+.coluna-preco{
+width:85px;
+max-width:85px;
+}
+
+button{
+padding:12px 18px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+color:white;
+font-weight:bold;
+font-size:14px;
+}
+
+.btn-ia{
+background:#16a34a;
+}
+
+.btn-manual{
+background:#2563eb;
+}
+
+.btn-camera{
+background:#f97316;
+}
+
+.btn-validade{
+background:#7c3aed;
+}
+
+.btn-atualizar{
+background:#0891b2;
+}
+
+.btn-excluir{
+background:#dc2626;
+width:38px;
+height:38px;
+padding:0;
+font-size:20px;
+font-weight:bold;
+}
+
+#reader{
+width:100%;
+max-width:450px;
+margin-top:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+background:white;
+}
+
+th{
+background:#f3f4f6;
+padding:15px;
+font-size:14px;
+}
+
+td{
+padding:10px;
+border-top:1px solid #e5e7eb;
+text-align:center;
+}
+
+tr:hover{
+background:#f9fafb;
+}
+
+.vencendo{
+background:#fef2f2;
+}
+
+.lucro-positivo{
+color:green;
+font-weight:bold;
+}
+
+.lucro-baixo{
+color:#dc2626;
+font-weight:bold;
+}
+
+input.tabela-input,
+select.tabela-select{
+width:100%;
+min-width:100px;
+padding:8px;
+font-size:13px;
+}
+
+td img{
+width:55px;
+height:55px;
+object-fit:cover;
+border-radius:10px;
+border:2px solid #d1d5db;
+}
+
+.input-camera{
+display:none;
+}
+
+.label-camera{
+display:flex;
+align-items:center;
+justify-content:center;
+width:42px;
+height:42px;
+background:#2563eb;
+color:white;
+border-radius:12px;
+cursor:pointer;
+font-size:22px;
+transition:0.2s;
+}
+
+.label-camera:hover{
+transform:scale(1.08);
+background:#1d4ed8;
+}
+
+.filtro-box{
+background:#eef2ff;
+padding:15px;
+border-radius:15px;
+margin-bottom:20px;
+}
+
+@media(max-width:768px){
+
+input,
+select{
+min-width:100%;
+}
+
+button{
+width:100%;
+}
+
+table{
+display:block;
+overflow-x:auto;
+}
+
+header{
+font-size:25px;
+}
+
+.btn-excluir{
+width:38px !important;
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<span class="logo-titulo">
+ERP IA
+</span>
+
+Fazenda Supermercado
+
+</header>
+
+<div class="container">
+
+<div class="card">
+
+<h2>
+Cadastro Inteligente
+</h2>
+
+<div class="flex">
+
+<input
+type="text"
+id="codigoBarras"
+placeholder="Código de barras"
+>
+
+<input
+type="text"
+id="nome"
+placeholder="Nome produto"
+class="campo-produto"
+>
+
+<select id="categoriaCadastro">
+
+<option value="alimenticio">
+Alimentício
+</option>
+
+<option value="bebidas">
+Bebidas
+</option>
+
+<option value="resfriados">
+Resfriados
+</option>
+
+<option value="higiene">
+Higiene
+</option>
+
+<option value="limpeza">
+Limpeza
+</option>
+
+<option value="bazar">
+Bazar
+</option>
+
+</select>
+
+<input
+type="number"
+id="custo"
+placeholder="Custo"
+class="campo-custo"
+>
+
+<input
+type="number"
+id="preco"
+placeholder="Preço venda"
+class="campo-preco"
+>
+
+<input
+type="number"
+id="estoque"
+placeholder="Qtd"
+class="campo-estoque"
+>
+
+<input
+type="date"
+id="validade"
+>
+
+<input
+type="file"
+id="imagemManual"
+accept="image/*"
+>
+
+</div>
+
+<div class="flex">
+
+<button
+class="btn-ia"
+onclick="buscarProdutoOnline()"
+>
+Cadastro Inteligente IA
+</button>
+
+<button
+class="btn-manual"
+onclick="adicionarProduto()"
+>
+Adicionar Manual
+</button>
+
+<button
+class="btn-camera"
+onclick="abrirCamera()"
+>
+Escanear Código
+</button>
+
+</div>
+
+<div id="reader"></div>
+
+</div>
+
+<div class="card">
+
+<div class="filtro-box">
+
+<h2>
+Filtro por Categoria
+</h2>
+
+<div class="flex">
+
+<select
+id="filtroCategoria"
+onchange="filtrarCategoria()"
+>
+
+<option value="todos">
+Todas categorias
+</option>
+
+<option value="alimenticio">
+Alimentício
+</option>
+
+<option value="bebidas">
+Bebidas
+</option>
+
+<option value="resfriados">
+Resfriados
+</option>
+
+<option value="higiene">
+Higiene
+</option>
+
+<option value="limpeza">
+Limpeza
+</option>
+
+<option value="bazar">
+Bazar
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+<div class="flex">
+
+<button
+class="btn-validade"
+onclick="ordenarPorValidade()"
+>
+Ordenar por validade
+</button>
+
+<button
+class="btn-atualizar"
+onclick="atualizarSistema()"
+>
+Atualizar sistema
+</button>
+
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Imagem</th>
+<th>Código</th>
+<th class="coluna-produto">Produto</th>
+<th>Marca</th>
+<th>Categoria</th>
+<th class="coluna-custo">Custo</th>
+<th>% Lucro</th>
+<th class="coluna-preco">Preço</th>
+<th class="coluna-estoque">Qtd</th>
+<th>Validade</th>
+<th>X</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tabelaProdutos"></tbody>
+
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+let produtos =
+JSON.parse(
+localStorage.getItem('produtos')
+) || [];
+
+let filtroAtual = "todos";
+
+const categorias = [
+'alimenticio',
+'bebidas',
+'resfriados',
+'higiene',
+'limpeza',
+'bazar'
+];
+
+function salvarDados(){
+
+localStorage.setItem(
+'produtos',
+JSON.stringify(produtos)
+);
+
+}
+
+function ordenarPorValidade(){
+
+produtos.sort((a,b)=>
+new Date(a.validade) -
+new Date(b.validade)
+);
+
+salvarDados();
+
+atualizarTabela();
+
+}
+
+function atualizarSistema(){
+
+ordenarPorValidade();
+
+}
+
+function filtrarCategoria(){
+
+filtroAtual =
+document.getElementById(
+'filtroCategoria'
+).value;
+
+atualizarTabela();
+
+}
+
+function diasParaVencer(validade){
+
+const hoje = new Date();
+
+const vencimento =
+new Date(validade);
+
+const diferenca =
+vencimento - hoje;
+
+return Math.ceil(
+diferenca /
+(1000*60*60*24)
+);
+
+}
+
+function converterImagemBase64(file){
+
+return new Promise((resolve)=>{
+
+const reader =
+new FileReader();
+
+reader.onload = ()=> resolve(reader.result);
+
+reader.readAsDataURL(file);
+
+});
+
+}
+
+function calcularLucro(custo,preco){
+
+custo = parseFloat(custo || 0);
+preco = parseFloat(preco || 0);
+
+if(custo <= 0) return 0;
+
+return (
+((preco - custo) / custo) * 100
+).toFixed(1);
+
+}
+
+async function abrirCamera(){
+
+try{
+
+const html5QrCode =
+new Html5Qrcode("reader");
+
+await html5QrCode.start(
+
+{
+facingMode:"environment"
+},
+
+{
+fps:10,
+qrbox:250
+},
+
+(decodedText)=>{
+
+document.getElementById(
+'codigoBarras'
+).value = decodedText;
+
+html5QrCode.stop();
+
+buscarProdutoOnline();
+
+},
+
+()=>{}
+
+);
+
+}catch(erro){
+
+alert(
+'Erro ao acessar câmera'
+);
+
+console.log(erro);
+
+}
+
+}
+
+async function buscarProdutoOnline(){
+
+const codigo =
+document.getElementById(
+'codigoBarras'
+).value;
+
+if(!codigo){
+
+alert('Digite o código');
+
+return;
+
+}
+
+let nome = '';
+let marca = '';
+let imagem = '';
+
+try{
+
+const resposta =
+await fetch(
+'https://world.openfoodfacts.org/api/v0/product/' +
+codigo +
+'.json'
+);
+
+const dados =
+await resposta.json();
+
+if(dados.status === 1){
+
+nome =
+dados.product.product_name || '';
+
+marca =
+dados.product.brands || '';
+
+imagem =
+dados.product.image_url || '';
+
+}
+
+}catch(erro){
+
+console.log(erro);
+
+}
+
+if(nome === ''){
+
+nome = 'Produto não encontrado';
+marca = '';
+
+}
+
+document.getElementById('nome').value = nome;
+document.getElementById('estoque').value = 1;
+
+if(!document.getElementById('custo').value){
+
+document.getElementById('custo').value = 0;
+
+}
+
+if(!document.getElementById('preco').value){
+
+document.getElementById('preco').value = 0;
+
+}
+
+if(
+!document.getElementById('validade').value
+){
+
+const hoje = new Date();
+
+hoje.setMonth(
+hoje.getMonth()+6
+);
+
+document.getElementById(
+'validade'
+).value =
+hoje.toISOString().split('T')[0];
+
+}
+
+await adicionarProduto(
+imagem,
+marca
+);
+
+}
+
+async function adicionarProduto(
+imagem='',
+marca=''
+){
+
+const nome =
+document.getElementById(
+'nome'
+).value;
+
+if(!nome){
+
+alert('Digite o nome');
+
+return;
+
+}
+
+let imagemFinal = imagem;
+
+const arquivo =
+document.getElementById(
+'imagemManual'
+).files[0];
+
+if(arquivo){
+
+imagemFinal =
+await converterImagemBase64(
+arquivo
+);
+
+}
+
+const novoId =
+produtos.length > 0
+?
+Math.max(...produtos.map(
+p => p.id
+)) + 1
+:
+1;
+
+const produto = {
+
+id:novoId,
+
+codigoBarras:
+document.getElementById(
+'codigoBarras'
+).value,
+
+nome:nome,
+
+categoria:
+document.getElementById(
+'categoriaCadastro'
+).value,
+
+custo:
+document.getElementById(
+'custo'
+).value,
+
+preco:
+document.getElementById(
+'preco'
+).value,
+
+estoque:
+document.getElementById(
+'estoque'
+).value,
+
+validade:
+document.getElementById(
+'validade'
+).value,
+
+imagem:imagemFinal,
+
+marca:marca
+
+};
+
+produtos.push(produto);
+
+salvarDados();
+
+atualizarTabela();
+
+limparCampos();
+
+}
+
+function limparCampos(){
+
+document.getElementById('codigoBarras').value='';
+document.getElementById('nome').value='';
+document.getElementById('custo').value='';
+document.getElementById('preco').value='';
+document.getElementById('estoque').value='';
+document.getElementById('validade').value='';
+document.getElementById('imagemManual').value='';
+
+}
+
+function removerProduto(id){
+
+produtos =
+produtos.filter(
+p => p.id !== id
+);
+
+salvarDados();
+
+atualizarTabela();
+
+}
+
+function atualizarCampo(id,campo,valor){
+
+const produto =
+produtos.find(
+p => p.id === id
+);
+
+if(produto){
+
+produto[campo] = valor;
+
+salvarDados();
+
+}
+
+}
+
+async function trocarImagem(event,id){
+
+const arquivo =
+event.target.files[0];
+
+if(!arquivo) return;
+
+const base64 =
+await converterImagemBase64(
+arquivo
+);
+
+const produto =
+produtos.find(
+p => p.id === id
+);
+
+if(produto){
+
+produto.imagem = base64;
+
+salvarDados();
+
+atualizarTabela();
+
+}
+
+}
+
+function atualizarTabela(){
+
+const tabela =
+document.getElementById(
+'tabelaProdutos'
+);
+
+tabela.innerHTML='';
+
+let produtosFiltrados =
+produtos;
+
+if(filtroAtual !== "todos"){
+
+produtosFiltrados =
+produtos.filter(
+p => p.categoria === filtroAtual
+);
+
+}
+
+produtosFiltrados.forEach((produto)=>{
+
+const dias =
+diasParaVencer(
+produto.validade
+);
+
+const lucro =
+calcularLucro(
+produto.custo,
+produto.preco
+);
+
+tabela.innerHTML += `
+
+<tr class="${
+dias <= 30
+? 'vencendo'
+: ''
+}">
+
+<td>
+
+<div style="
+display:flex;
+align-items:center;
+justify-content:center;
+gap:8px;
+">
+
+${
+produto.imagem
+?
+`<img src="${produto.imagem}">`
+:
+`<div style="
+width:55px;
+height:55px;
+background:#e5e7eb;
+border-radius:10px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:20px;
+">
+🛒
+</div>`
+}
+
+<label class="label-camera">
+
+📷
+
+<input
+class="input-camera"
+type="file"
+accept="image/*"
+onchange="
+trocarImagem(
+event,
+${produto.id}
+)
+"
+>
+
+</label>
+
+</div>
+
+</td>
+
+<td>
+
+<input
+class="tabela-input"
+value="${produto.codigoBarras || ''}"
+onchange="
+atualizarCampo(
+${produto.id},
+'codigoBarras',
+this.value
+)
+"
+>
+
+</td>
+
+<td>
+
+<input
+class="tabela-input coluna-produto"
+value="${produto.nome || ''}"
+onchange="
+atualizarCampo(
+${produto.id},
+'nome',
+this.value
+)
+"
+>
+
+</td>
+
+<td>
+
+<input
+class="tabela-input"
+value="${produto.marca || ''}"
+onchange="
+atualizarCampo(
+${produto.id},
+'marca',
+this.value
+)
+"
+>
+
+</td>
+
+<td>
+
+<select
+class="tabela-select"
+onchange="
+atualizarCampo(
+${produto.id},
+'categoria',
+this.value
+)
+"
+>
+
+${categorias.map(cat => `
+<option
+value="${cat}"
+${produto.categoria === cat ? 'selected' : ''}
+>
+${cat}
+</option>
+`).join('')}
+
+</select>
+
+</td>
+
+<td>
+
+<input
+class="tabela-input coluna-custo"
+style="
+max-width:85px;
+min-width:85px;
+text-align:center;
+"
+type="number"
+value="${produto.custo || 0}"
+onchange="
+atualizarCampo(
+${produto.id},
+'custo',
+this.value
+)
+"
+>
+
+</td>
+
+<td class="${
+lucro >= 30
+? 'lucro-positivo'
+: 'lucro-baixo'
+}">
+
+${lucro}%
+
+</td>
+
+<td>
+
+<input
+class="tabela-input coluna-preco"
+style="
+max-width:85px;
+min-width:85px;
+text-align:center;
+"
+type="number"
+value="${produto.preco || 0}"
+onchange="
+atualizarCampo(
+${produto.id},
+'preco',
+this.value
+)
+"
+>
+
+</td>
+
+<td>
+
+<input
+class="tabela-input coluna-estoque"
+style="
+max-width:75px;
+min-width:75px;
+padding:6px;
+text-align:center;
+"
+type="number"
+value="${produto.estoque || 0}"
+onchange="
+atualizarCampo(
+${produto.id},
+'estoque',
+this.value
+)
+"
+>
+
+</td>
+
+<td>
+
+<input
+class="tabela-input"
+type="date"
+value="${produto.validade || ''}"
+onchange="
+atualizarCampo(
+${produto.id},
+'validade',
+this.value
+)
+"
+>
+
+</td>
+
+<td>
+
+<button
+class="btn-excluir"
+onclick="
+removerProduto(${produto.id})
+"
+>
+X
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+});
+
+}
+
+atualizarTabela();
+
+if ("serviceWorker" in navigator) {
+
+window.addEventListener("load", () => {
+
+navigator.serviceWorker
+.register("./service-worker.js")
+
+.then((reg) => {
+
+console.log(
+"PWA carregado",
+reg
+);
+
+})
+
+.catch((err) => {
+
+console.log(
+"Erro PWA",
+err
+);
+
+});
+
+});
+
+}
+
+</script>
+
+</body>
+
+</html>
