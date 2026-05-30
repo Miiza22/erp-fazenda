@@ -517,6 +517,17 @@ Atualizar sistema
 
 </div>
 
+<div class="flex">
+
+<input
+type="text"
+id="buscaRapida"
+placeholder="🔍 Buscar por nome, código ou marca"
+onkeyup="atualizarTabela()"
+>
+
+</div>
+
 <table>
 
 <thead>
@@ -567,6 +578,31 @@ const categorias = [
 'limpeza',
 'bazar'
 ];
+
+let bancoProdutos =
+JSON.parse(
+localStorage.getItem("bancoProdutos")
+) || {
+
+"7896098900239":{
+nome:"Detergente Líquido Ypê Neutro 500ml",
+marca:"Ypê",
+categoria:"limpeza"
+},
+
+"7896098900215":{
+nome:"Detergente Líquido Ypê Clear 500ml",
+marca:"Ypê",
+categoria:"limpeza"
+},
+
+"7891150067011":{
+nome:"Coca-Cola Original 2L",
+marca:"Coca-Cola",
+categoria:"bebidas"
+}
+
+};
 
 function salvarDados(){
 
@@ -744,6 +780,22 @@ document.getElementById(
 'codigoBarras'
 ).value;
 
+if(bancoProdutos[codigo]){
+
+const produto = bancoProdutos[codigo];
+
+document.getElementById('nome').value =
+produto.nome;
+
+document.getElementById('categoriaCadastro').value =
+produto.categoria;
+
+document.getElementById('estoque').value = 1;
+
+return;
+
+}
+
 if(!codigo){
 
 alert('Digite o código');
@@ -789,8 +841,11 @@ console.log(erro);
 
 if(nome === ''){
 
-nome = 'Produto não encontrado';
-marca = '';
+alert(
+'Produto não encontrado.\n\nPreencha os dados manualmente.'
+);
+
+return;
 
 }
 
@@ -918,6 +973,25 @@ marca:marca
 
 };
 
+if(produto.codigoBarras){
+
+bancoProdutos[
+produto.codigoBarras
+] = {
+
+nome:produto.nome,
+marca:produto.marca,
+categoria:produto.categoria
+
+};
+
+localStorage.setItem(
+"bancoProdutos",
+JSON.stringify(bancoProdutos)
+);
+
+}
+
 produtos.push(produto);
 
 salvarDados();
@@ -1008,17 +1082,45 @@ document.getElementById(
 
 tabela.innerHTML='';
 
+const busca =
+document.getElementById(
+'buscaRapida'
+)?.value
+?.toLowerCase() || '';
+
 let produtosFiltrados =
 produtos;
 
-if(filtroAtual !== "todos"){
-
 produtosFiltrados =
-produtos.filter(
-p => p.categoria === filtroAtual
-);
+produtos.filter((p)=>{
 
-}
+const categoriaOk =
+
+filtroAtual === "todos"
+||
+p.categoria === filtroAtual;
+
+const buscaOk =
+
+(p.nome || '')
+.toLowerCase()
+.includes(busca)
+
+||
+
+(p.marca || '')
+.toLowerCase()
+.includes(busca)
+
+||
+
+(p.codigoBarras || '')
+.toString()
+.includes(busca);
+
+return categoriaOk && buscaOk;
+
+});
 
 produtosFiltrados.forEach((produto)=>{
 
