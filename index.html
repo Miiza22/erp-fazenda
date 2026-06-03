@@ -322,6 +322,8 @@ width:38px !important;
 
 </style>
 
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -336,7 +338,20 @@ Fazenda Supermercado
 
 </header>
 
-<div class="container">
+
+<div id="loginScreen" class="container">
+  <div class="card">
+    <h2>Login ERP Fazenda</h2>
+    <div class="flex">
+      <input type="email" id="email" placeholder="E-mail">
+      <input type="password" id="senha" placeholder="Senha">
+      <button class="btn-manual" onclick="login()">Entrar</button>
+      <button class="btn-ia" onclick="registrar()">Criar Conta</button>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="erpContainer" style="display:none;">
 
 <div class="card">
 
@@ -1415,6 +1430,33 @@ err
 
 </script>
 
+
+<script>
+const SUPABASE_URL='https://numvxurdooalgvudbzmd.supabase.co';
+const SUPABASE_ANON_KEY='SUBSTITUA_PELA_SUA_ANON_KEY';
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+let usuarioAtual=null;
+
+async function registrar(){
+ const email=document.getElementById('email').value;
+ const senha=document.getElementById('senha').value;
+ const {error}=await supabaseClient.auth.signUp({email,password:senha});
+ if(error){alert(error.message);return;}
+ alert('Conta criada. Verifique seu e-mail.');
+}
+
+async function login(){
+ const email=document.getElementById('email').value;
+ const senha=document.getElementById('senha').value;
+ const {data,error}=await supabaseClient.auth.signInWithPassword({email,password:senha});
+ if(error){alert(error.message);return;}
+ usuarioAtual=data.user;
+ document.getElementById('loginScreen').style.display='none';
+ document.getElementById('erpContainer').style.display='block';
+}
+</script>
 </body>
 
 </html>
