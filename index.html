@@ -1117,20 +1117,65 @@ async function removerProduto(id){
 
 }
 
-function atualizarCampo(id,campo,valor){
+async function atualizarCampo(id,campo,valor){
 
-const produto =
-produtos.find(
-p => p.id === id
-);
+    let valorFinal = valor;
 
-if(produto){
+    if(campo === 'custo' || campo === 'preco'){
+        valorFinal = parseFloat(valor) || 0;
+    }
 
-produto[campo] = valor;
+    if(campo === 'estoque'){
+        valorFinal = parseInt(valor) || 0;
+    }
 
-salvarDados();
+    const mapaCampos = {
+        codigoBarras: 'codigo_barras',
+        nome: 'nome',
+        marca: 'marca',
+        categoria: 'categoria',
+        custo: 'custo',
+        preco: 'preco',
+        estoque: 'estoque',
+        validade: 'validade',
+        imagem: 'imagem'
+    };
 
-}
+    const colunaSupabase = mapaCampos[campo];
+
+    if(!colunaSupabase){
+        console.error('Campo não mapeado:', campo);
+        return;
+    }
+
+    const { error } =
+    await supabaseClient
+    .from('produtos')
+    .update({
+        [colunaSupabase]: valorFinal
+    })
+    .eq('id', id);
+
+    if(error){
+
+        console.error(error);
+
+        alert(
+            'Erro ao atualizar: ' +
+            error.message
+        );
+
+        return;
+    }
+
+    const produto =
+    produtos.find(
+        p => p.id === id
+    );
+
+    if(produto){
+        produto[campo] = valor;
+    }
 
 }
 
