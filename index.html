@@ -575,10 +575,7 @@ onkeyup="atualizarTabela()"
 
 <script>
 
-let produtos =
-JSON.parse(
-localStorage.getItem('produtos')
-) || [];
+let produtos = [];
 
 let filtroAtual = "todos";
 
@@ -1433,9 +1430,59 @@ err
 
 <script>
 const SUPABASE_URL='https://numvxurdooalgvudbzmd.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51bXZ4dXJkb29hbGd2dWRiem1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MDM3OTcsImV4cCI6MjA5NjA3OTc5N30.T9LpluDVO1EyJ5HaM1pgIZ2uYtxStYoZtNifLJWqtow';
+const SUPABASE_ANON_KEY='SUBSTITUA_PELA_SUA_ANON_KEY';
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+async function carregarProdutosSupabase() {
+
+    const { data, error } = await supabaseClient
+        .from('produtos')
+        .select('*');
+
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            'Erro ao carregar produtos: ' +
+            error.message
+        );
+
+        return;
+
+    }
+
+    produtos = data || [];
+
+    atualizarTabela();
+
+}
+
+async function carregarProdutosSupabase() {
+
+    const { data, error } = await supabaseClient
+        .from('produtos')
+        .select('*');
+
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            'Erro ao carregar produtos: ' +
+            error.message
+        );
+
+        return;
+
+    }
+
+    produtos = data || [];
+
+    atualizarTabela();
+
+}
 
 let usuarioAtual=null;
 
@@ -1448,14 +1495,38 @@ async function registrar(){
 }
 
 async function login(){
- const email=document.getElementById('email').value;
- const senha=document.getElementById('senha').value;
- const {data,error}=await supabaseClient.auth.signInWithPassword({email,password:senha});
- if(error){alert(error.message);return;}
- usuarioAtual=data.user;
+
+ const email =
+ document.getElementById('email').value;
+
+ const senha =
+ document.getElementById('senha').value;
+
+ const {data,error} =
+ await supabaseClient.auth.signInWithPassword({
+
+   email,
+   password: senha
+
+ });
+
+ if(error){
+
+   alert(error.message);
+   return;
+
+ }
+
+ usuarioAtual = data.user;
+
  document.getElementById('loginScreen').style.display='none';
+
  document.getElementById('erpContainer').style.display='block';
+
+ await carregarProdutosSupabase();
+
 }
+
 </script>
 </body>
 
