@@ -1078,16 +1078,40 @@ document.getElementById('imagemManual').value='';
 
 }
 
-function removerProduto(id){
+async function removerProduto(id){
 
-produtos =
-produtos.filter(
-p => p.id !== id
+if(
+!confirm(
+'Deseja realmente excluir este produto?'
+)
+){
+return;
+}
+
+const { error } =
+await supabaseClient
+.from('produtos')
+.delete()
+.eq('id', id);
+
+if(error){
+
+console.error(error);
+
+alert(
+'Erro ao excluir produto: ' +
+error.message
 );
 
-salvarDados();
+return;
 
-atualizarTabela();
+}
+
+await carregarProdutosSupabase();
+
+alert(
+'Produto excluído com sucesso!'
+);
 
 }
 
@@ -1430,7 +1454,7 @@ this.value
 <button
 class="btn-excluir"
 onclick="
-removerProduto(${produto.id})
+removerProduto('${produto.id}')
 "
 >
 X
