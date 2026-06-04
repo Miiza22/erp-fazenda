@@ -1004,13 +1004,60 @@ JSON.stringify(bancoProdutos)
 
 }
 
-produtos.push(produto);
+const { error } =
+await supabaseClient
+.from('produtos')
+.insert([{
 
-salvarDados();
+codigo_barras:
+produto.codigoBarras,
 
-atualizarTabela();
+nome:
+produto.nome,
+
+marca:
+produto.marca,
+
+categoria:
+produto.categoria,
+
+custo:
+parseFloat(produto.custo || 0),
+
+preco:
+parseFloat(produto.preco || 0),
+
+estoque:
+parseInt(produto.estoque || 0),
+
+validade:
+produto.validade || null,
+
+imagem:
+produto.imagem
+
+}]);
+
+if(error){
+
+console.error(error);
+
+alert(
+'Erro ao salvar produto: ' +
+error.message
+);
+
+return;
+
+}
+
+await carregarProdutosSupabase();
 
 limparCampos();
+
+alert(
+'Produto cadastrado com sucesso!'
+);
 
 }
 
