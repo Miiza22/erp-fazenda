@@ -1080,38 +1080,9 @@ document.getElementById('imagemManual').value='';
 
 async function removerProduto(id){
 
-if(
-!confirm(
-'Deseja realmente excluir este produto?'
-)
-){
-return;
-}
+    console.log("ID recebido:", id);
 
-const { error } =
-await supabaseClient
-.from('produtos')
-.delete()
-.eq('id', id);
-
-if(error){
-
-console.error(error);
-
-alert(
-'Erro ao excluir produto: ' +
-error.message
-);
-
-return;
-
-}
-
-await carregarProdutosSupabase();
-
-alert(
-'Produto excluído com sucesso!'
-);
+    alert("ID recebido: " + id);
 
 }
 
