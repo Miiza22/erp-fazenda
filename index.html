@@ -855,7 +855,16 @@ await carregarProdutosSupabase();
 
         const colunaSupabase = mapaCampos[campo];
 
-        console.log("COLUNA:", colunaSupabase);
+        if (!colunaSupabase) {
+  console.error("Campo não mapeado:", campo);
+  return;
+}
+
+       console.log("COLUNA:", colunaSupabase);
+ 
+        console.log("OBJETO UPDATE:", {
+  [colunaSupabase]: valorFinal,
+});
 
         const { data, error } = await supabaseClient
           .from("produtos")
@@ -976,13 +985,7 @@ ${produto.id}
 <input
 class="tabela-input"
 value="${produto.codigoBarras || ""}"
-onchange="
-atualizarCampo(
-${produto.id},
-'codigoBarras',
-this.value
-)
-"
+onchange="atualizarCampo('${produto.id}','codigoBarras',this.value)"
 >
 
 </td>
@@ -992,13 +995,7 @@ this.value
 <input
 class="tabela-input coluna-produto"
 value="${produto.nome || ""}"
-onchange="
-atualizarCampo(
-${produto.id},
-'nome',
-this.value
-)
-"
+onchange="atualizarCampo('${produto.id}','nome',this.value)"
 >
 
 </td>
@@ -1008,13 +1005,7 @@ this.value
 <input
 class="tabela-input"
 value="${produto.marca || ""}"
-onchange="
-atualizarCampo(
-${produto.id},
-'marca',
-this.value
-)
-"
+onchange="atualizarCampo('${produto.id}','marca',this.value)"
 >
 
 </td>
@@ -1024,12 +1015,7 @@ this.value
 <select
 class="tabela-select"
 onchange="
-atualizarCampo(
-${produto.id},
-'categoria',
-this.value
-)
-"
+atualizarCampo('${produto.id}','categoria',this.value)"
 >
 
 ${categorias
@@ -1061,12 +1047,7 @@ text-align:center;
 type="number"
 value="${produto.custo || 0}"
 onchange="
-atualizarCampo(
-${produto.id},
-'custo',
-this.value
-)
-"
+atualizarCampo('${produto.id}','custo',this.value)"
 >
 
 </td>
@@ -1088,13 +1069,7 @@ text-align:center;
 "
 type="number"
 value="${produto.preco || 0}"
-onchange="
-atualizarCampo(
-${produto.id},
-'preco',
-this.value
-)
-"
+onchange="atualizarCampo('${produto.id}','preco',this.value)"
 >
 
 </td>
@@ -1111,13 +1086,7 @@ text-align:center;
 "
 type="number"
 value="${produto.estoque || 0}"
-onchange="
-atualizarCampo(
-${produto.id},
-'estoque',
-this.value
-)
-"
+onchange="atualizarCampo('${produto.id}','estoque',this.value)"
 >
 
 </td>
@@ -1128,13 +1097,7 @@ this.value
 class="tabela-input"
 type="date"
 value="${produto.validade || ""}"
-onchange="
-atualizarCampo(
-${produto.id},
-'validade',
-this.value
-)
-"
+onchange="atualizarCampo('${produto.id}','validade',this.value)"
 >
 
 </td>
