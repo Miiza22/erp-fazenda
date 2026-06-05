@@ -966,12 +966,7 @@ font-size:20px;
 class="input-camera"
 type="file"
 accept="image/*"
-onchange="
-trocarImagem(
-event,
-${produto.id}
-)
-"
+onchange="trocarImagem(event,'${produto.id}')"
 >
 
 </label>
@@ -1107,8 +1102,7 @@ onchange="atualizarCampo('${produto.id}','validade',this.value)"
 <button
 class="btn-excluir"
 onclick="
-removerProduto('${produto.id}')
-"
+removerProduto('${produto.id}')"
 >
 X
 </button>
