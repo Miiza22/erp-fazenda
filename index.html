@@ -1,1282 +1,924 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-
-<head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>
-ERP IA Fazenda Supermercado
-</title>
-
-<link rel="manifest" href="manifest.json">
-
-<meta name="theme-color"
-content="#111827">
-
-<meta name="mobile-web-app-capable"
-content="yes">
-
-<meta name="apple-mobile-web-app-capable"
-content="yes">
-
-<meta name="apple-mobile-web-app-status-bar-style"
-content="black-translucent">
-
-<script src="https://unpkg.com/html5-qrcode"></script>
-
-<style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-}
-
-body{
-font-family:Arial;
-background:#f3f4f6;
-overflow-x:hidden;
-position:relative;
-}
-
-body::before{
-content:"";
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background-image:url('https://i.imgur.com/zYIlgBl.png');
-background-repeat:no-repeat;
-background-position:center;
-background-size:65%;
-opacity:0.05;
-z-index:-1;
-}
-
-header{
-background:linear-gradient(
-90deg,
-#111827,
-#1f2937
-);
-
-color:white;
-padding:20px;
-text-align:center;
-font-size:34px;
-font-weight:bold;
-
-box-shadow:
-0 4px 15px rgba(0,0,0,0.2);
-}
-
-.logo-titulo{
-color:#f97316;
-}
-
-.container{
-width:95%;
-max-width:1700px;
-margin:20px auto;
-}
-
-.card{
-background:rgba(255,255,255,0.97);
-border-radius:18px;
-padding:25px;
-margin-bottom:25px;
-
-box-shadow:
-0 8px 25px rgba(0,0,0,0.08);
-}
-
-.card h2{
-margin-bottom:20px;
-color:#111827;
-}
-
-.flex{
-display:flex;
-flex-wrap:wrap;
-gap:12px;
-margin-bottom:15px;
-}
-
-input,
-select{
-flex:1;
-min-width:170px;
-padding:14px;
-border-radius:12px;
-border:1px solid #d1d5db;
-font-size:15px;
-}
-
-.campo-produto{
-min-width:320px !important;
-flex:2 !important;
-}
-
-.campo-estoque{
-max-width:75px !important;
-min-width:75px !important;
-flex:0.4 !important;
-}
-
-.campo-custo{
-max-width:85px !important;
-min-width:85px !important;
-flex:0.5 !important;
-}
-
-.campo-preco{
-max-width:85px !important;
-min-width:85px !important;
-flex:0.5 !important;
-}
-
-.coluna-produto{
-min-width:280px;
-}
-
-.coluna-estoque{
-width:75px;
-max-width:75px;
-}
-
-.coluna-custo{
-width:85px;
-max-width:85px;
-}
-
-.coluna-preco{
-width:85px;
-max-width:85px;
-}
-
-button{
-padding:12px 18px;
-border:none;
-border-radius:12px;
-cursor:pointer;
-color:white;
-font-weight:bold;
-font-size:14px;
-transition:0.2s;
-}
-
-button:hover{
-transform:scale(1.03);
-}
-
-.btn-ia{
-background:#16a34a;
-}
-
-.btn-manual{
-background:#2563eb;
-}
-
-.btn-camera{
-background:#f97316;
-}
-
-.btn-validade{
-background:#7c3aed;
-}
-
-.btn-atualizar{
-background:#0891b2;
-}
-
-.btn-excluir{
-background:#dc2626;
-width:38px;
-height:38px;
-padding:0;
-font-size:20px;
-font-weight:bold;
-}
-
-#reader{
-width:100%;
-max-width:500px;
-margin-top:20px;
-overflow:hidden;
-border-radius:18px;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:20px;
-background:white;
-}
-
-th{
-background:#f3f4f6;
-padding:15px;
-font-size:14px;
-}
-
-td{
-padding:10px;
-border-top:1px solid #e5e7eb;
-text-align:center;
-}
-
-tr:hover{
-background:#f9fafb;
-}
-
-.vencendo{
-background:#fef2f2;
-}
-
-.lucro-positivo{
-color:green;
-font-weight:bold;
-}
-
-.lucro-baixo{
-color:#dc2626;
-font-weight:bold;
-}
-
-input.tabela-input,
-select.tabela-select{
-width:100%;
-min-width:100px;
-padding:8px;
-font-size:13px;
-}
-
-td img{
-width:55px;
-height:55px;
-object-fit:cover;
-border-radius:10px;
-border:2px solid #d1d5db;
-}
-
-.input-camera{
-display:none;
-}
-
-.label-camera{
-display:flex;
-align-items:center;
-justify-content:center;
-width:42px;
-height:42px;
-background:#2563eb;
-color:white;
-border-radius:12px;
-cursor:pointer;
-font-size:22px;
-transition:0.2s;
-}
-
-.label-camera:hover{
-transform:scale(1.08);
-background:#1d4ed8;
-}
-
-.filtro-box{
-background:#eef2ff;
-padding:15px;
-border-radius:15px;
-margin-bottom:20px;
-}
-
-@media(max-width:768px){
-
-input,
-select{
-min-width:100%;
-}
-
-button{
-width:100%;
-}
-
-table{
-display:block;
-overflow-x:auto;
-}
-
-header{
-font-size:25px;
-}
-
-.btn-excluir{
-width:38px !important;
-}
-
-}
-
-</style>
-
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-
-<body>
-
-<header>
-
-<span class="logo-titulo">
-ERP IA
-</span>
-
-Fazenda Supermercado
-
-</header>
-
-
-<div id="loginScreen" class="container">
-  <div class="card">
-    <h2>Login ERP Fazenda</h2>
-    <div class="flex">
-      <input type="email" id="email" placeholder="E-mail">
-      <input type="password" id="senha" placeholder="Senha">
-      <button class="btn-manual" onclick="login()">Entrar</button>
-      <button class="btn-ia" onclick="registrar()">Criar Conta</button>
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>ERP IA Fazenda Supermercado</title>
+
+    <link rel="manifest" href="manifest.json" />
+
+    <meta name="theme-color" content="#111827" />
+
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Arial;
+        background: #f3f4f6;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("https://i.imgur.com/zYIlgBl.png");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 65%;
+        opacity: 0.05;
+        z-index: -1;
+      }
+
+      header {
+        background: linear-gradient(90deg, #111827, #1f2937);
+
+        color: white;
+        padding: 20px;
+        text-align: center;
+        font-size: 34px;
+        font-weight: bold;
+
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .logo-titulo {
+        color: #f97316;
+      }
+
+      .container {
+        width: 95%;
+        max-width: 1700px;
+        margin: 20px auto;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.97);
+        border-radius: 18px;
+        padding: 25px;
+        margin-bottom: 25px;
+
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      }
+
+      .card h2 {
+        margin-bottom: 20px;
+        color: #111827;
+      }
+
+      .flex {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 15px;
+      }
+
+      input,
+      select {
+        flex: 1;
+        min-width: 170px;
+        padding: 14px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        font-size: 15px;
+      }
+
+      .campo-produto {
+        min-width: 320px !important;
+        flex: 2 !important;
+      }
+
+      .campo-estoque {
+        max-width: 75px !important;
+        min-width: 75px !important;
+        flex: 0.4 !important;
+      }
+
+      .campo-custo {
+        max-width: 85px !important;
+        min-width: 85px !important;
+        flex: 0.5 !important;
+      }
+
+      .campo-preco {
+        max-width: 85px !important;
+        min-width: 85px !important;
+        flex: 0.5 !important;
+      }
+
+      .coluna-produto {
+        min-width: 280px;
+      }
+
+      .coluna-estoque {
+        width: 75px;
+        max-width: 75px;
+      }
+
+      .coluna-custo {
+        width: 85px;
+        max-width: 85px;
+      }
+
+      .coluna-preco {
+        width: 85px;
+        max-width: 85px;
+      }
+
+      button {
+        padding: 12px 18px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+        transition: 0.2s;
+      }
+
+      button:hover {
+        transform: scale(1.03);
+      }
+
+      .btn-ia {
+        background: #16a34a;
+      }
+
+      .btn-manual {
+        background: #2563eb;
+      }
+
+      .btn-camera {
+        background: #f97316;
+      }
+
+      .btn-validade {
+        background: #7c3aed;
+      }
+
+      .btn-atualizar {
+        background: #0891b2;
+      }
+
+      .btn-excluir {
+        background: #dc2626;
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        font-size: 20px;
+        font-weight: bold;
+      }
+
+      #reader {
+        width: 100%;
+        max-width: 500px;
+        margin-top: 20px;
+        overflow: hidden;
+        border-radius: 18px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background: white;
+      }
+
+      th {
+        background: #f3f4f6;
+        padding: 15px;
+        font-size: 14px;
+      }
+
+      td {
+        padding: 10px;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+      }
+
+      tr:hover {
+        background: #f9fafb;
+      }
+
+      .vencendo {
+        background: #fef2f2;
+      }
+
+      .lucro-positivo {
+        color: green;
+        font-weight: bold;
+      }
+
+      .lucro-baixo {
+        color: #dc2626;
+        font-weight: bold;
+      }
+
+      input.tabela-input,
+      select.tabela-select {
+        width: 100%;
+        min-width: 100px;
+        padding: 8px;
+        font-size: 13px;
+      }
+
+      td img {
+        width: 55px;
+        height: 55px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 2px solid #d1d5db;
+      }
+
+      .input-camera {
+        display: none;
+      }
+
+      .label-camera {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        background: #2563eb;
+        color: white;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 22px;
+        transition: 0.2s;
+      }
+
+      .label-camera:hover {
+        transform: scale(1.08);
+        background: #1d4ed8;
+      }
+
+      .filtro-box {
+        background: #eef2ff;
+        padding: 15px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+      }
+
+      @media (max-width: 768px) {
+        input,
+        select {
+          min-width: 100%;
+        }
+
+        button {
+          width: 100%;
+        }
+
+        table {
+          display: block;
+          overflow-x: auto;
+        }
+
+        header {
+          font-size: 25px;
+        }
+
+        .btn-excluir {
+          width: 38px !important;
+        }
+      }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+
+  <body>
+    <header>
+      <span class="logo-titulo"> ERP IA </span>
+
+      Fazenda Supermercado
+    </header>
+
+    <div id="loginScreen" class="container">
+      <div class="card">
+        <h2>Login ERP Fazenda</h2>
+        <div class="flex">
+          <input type="email" id="email" placeholder="E-mail" />
+          <input type="password" id="senha" placeholder="Senha" />
+          <button class="btn-manual" onclick="login()">Entrar</button>
+          <button class="btn-ia" onclick="registrar()">Criar Conta</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-
-<div class="container" id="erpContainer" style="display:none;">
-
-<div class="card">
-
-<h2>
-Cadastro Inteligente
-</h2>
-
-<div class="flex">
-
-<input
-type="text"
-id="codigoBarras"
-placeholder="Código de barras"
->
-
-<input
-type="text"
-id="nome"
-placeholder="Nome produto"
-class="campo-produto"
->
-
-<select id="categoriaCadastro">
 
-<option value="alimenticio">
-Alimentício
-</option>
-
-<option value="bebidas">
-Bebidas
-</option>
-
-<option value="resfriados">
-Resfriados
-</option>
-
-<option value="higiene">
-Higiene
-</option>
-
-<option value="limpeza">
-Limpeza
-</option>
-
-<option value="bazar">
-Bazar
-</option>
-
-</select>
-
-<input
-type="number"
-id="custo"
-placeholder="Custo"
-class="campo-custo"
->
+    <div class="container" id="erpContainer" style="display: none">
+      <div class="card">
+        <h2>Cadastro Inteligente</h2>
 
-<input
-type="number"
-id="preco"
-placeholder="Preço venda"
-class="campo-preco"
->
+        <div class="flex">
+          <input type="text" id="codigoBarras" placeholder="Código de barras" />
 
-<input
-type="number"
-id="estoque"
-placeholder="Qtd"
-class="campo-estoque"
->
+          <input
+            type="text"
+            id="nome"
+            placeholder="Nome produto"
+            class="campo-produto"
+          />
 
-<input
-type="date"
-id="validade"
->
+          <select id="categoriaCadastro">
+            <option value="alimenticio">Alimentício</option>
 
-<input
-type="file"
-id="imagemManual"
-accept="image/*"
->
+            <option value="bebidas">Bebidas</option>
 
-</div>
+            <option value="resfriados">Resfriados</option>
+
+            <option value="higiene">Higiene</option>
+
+            <option value="limpeza">Limpeza</option>
+
+            <option value="bazar">Bazar</option>
+          </select>
+
+          <input
+            type="number"
+            id="custo"
+            placeholder="Custo"
+            class="campo-custo"
+          />
+
+          <input
+            type="number"
+            id="preco"
+            placeholder="Preço venda"
+            class="campo-preco"
+          />
+
+          <input
+            type="number"
+            id="estoque"
+            placeholder="Qtd"
+            class="campo-estoque"
+          />
+
+          <input type="date" id="validade" />
+
+          <input type="file" id="imagemManual" accept="image/*" />
+        </div>
+
+        <div class="flex">
+          <button class="btn-ia" onclick="buscarProdutoOnline()">
+            Cadastro Inteligente IA
+          </button>
+
+          <button class="btn-manual" onclick="adicionarProduto()">
+            Adicionar Manual
+          </button>
+
+          <button class="btn-camera" onclick="abrirCamera()">
+            Escanear Código
+          </button>
+        </div>
+
+        <div id="reader"></div>
+      </div>
+
+      <div class="card">
+        <div class="filtro-box">
+          <h2>Filtro por Categoria</h2>
+
+          <div class="flex">
+            <select id="filtroCategoria" onchange="filtrarCategoria()">
+              <option value="todos">Todas categorias</option>
+
+              <option value="alimenticio">Alimentício</option>
+
+              <option value="bebidas">Bebidas</option>
+
+              <option value="resfriados">Resfriados</option>
+
+              <option value="higiene">Higiene</option>
+
+              <option value="limpeza">Limpeza</option>
+
+              <option value="bazar">Bazar</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex">
+          <button class="btn-validade" onclick="ordenarPorValidade()">
+            Ordenar por validade
+          </button>
+
+          <button class="btn-atualizar" onclick="atualizarSistema()">
+            Atualizar sistema
+          </button>
+        </div>
+
+        <div class="flex">
+          <input
+            type="text"
+            id="buscaRapida"
+            placeholder="🔍 Buscar por nome, código ou marca"
+            onkeyup="atualizarTabela()"
+          />
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Imagem</th>
+              <th>Código</th>
+              <th class="coluna-produto">Produto</th>
+              <th>Marca</th>
+              <th>Categoria</th>
+              <th class="coluna-custo">Custo</th>
+              <th>% Lucro</th>
+              <th class="coluna-preco">Preço</th>
+              <th class="coluna-estoque">Qtd</th>
+              <th>Validade</th>
+              <th>X</th>
+            </tr>
+          </thead>
+
+          <tbody id="tabelaProdutos"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      let produtos = [];
+
+      let filtroAtual = "todos";
+
+      let cameraAtiva = false;
+      let ultimaLeitura = "";
+
+      const categorias = [
+        "alimenticio",
+        "bebidas",
+        "resfriados",
+        "higiene",
+        "limpeza",
+        "bazar",
+      ];
+
+      let bancoProdutos = JSON.parse(localStorage.getItem("bancoProdutos")) || {
+        7896098900239: {
+          nome: "Detergente Líquido Ypê Neutro 500ml",
+          marca: "Ypê",
+          categoria: "limpeza",
+        },
+
+        7896098900215: {
+          nome: "Detergente Líquido Ypê Clear 500ml",
+          marca: "Ypê",
+          categoria: "limpeza",
+        },
+
+        7891150067011: {
+          nome: "Coca-Cola Original 2L",
+          marca: "Coca-Cola",
+          categoria: "bebidas",
+        },
+      };
 
-<div class="flex">
+      function salvarDados() {
+        localStorage.setItem("produtos", JSON.stringify(produtos));
+      }
 
-<button
-class="btn-ia"
-onclick="buscarProdutoOnline()"
->
-Cadastro Inteligente IA
-</button>
+      function ordenarPorValidade() {
+        produtos.sort((a, b) => new Date(a.validade) - new Date(b.validade));
 
-<button
-class="btn-manual"
-onclick="adicionarProduto()"
->
-Adicionar Manual
-</button>
+        salvarDados();
+
+        atualizarTabela();
+      }
 
-<button
-class="btn-camera"
-onclick="abrirCamera()"
->
-Escanear Código
-</button>
+      function atualizarSistema() {
+        ordenarPorValidade();
+      }
 
-</div>
+      function filtrarCategoria() {
+        filtroAtual = document.getElementById("filtroCategoria").value;
 
-<div id="reader"></div>
+        atualizarTabela();
+      }
 
-</div>
+      function diasParaVencer(validade) {
+        const hoje = new Date();
 
-<div class="card">
+        const vencimento = new Date(validade);
 
-<div class="filtro-box">
+        const diferenca = vencimento - hoje;
 
-<h2>
-Filtro por Categoria
-</h2>
+        return Math.ceil(diferenca / (1000 * 60 * 60 * 24));
+      }
 
-<div class="flex">
+      function converterImagemBase64(file) {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
 
-<select
-id="filtroCategoria"
-onchange="filtrarCategoria()"
->
+          reader.onload = () => resolve(reader.result);
 
-<option value="todos">
-Todas categorias
-</option>
+          reader.readAsDataURL(file);
+        });
+      }
 
-<option value="alimenticio">
-Alimentício
-</option>
+      function calcularLucro(custo, preco) {
+        custo = parseFloat(custo || 0);
+        preco = parseFloat(preco || 0);
 
-<option value="bebidas">
-Bebidas
-</option>
+        if (custo <= 0) return 0;
 
-<option value="resfriados">
-Resfriados
-</option>
+        return (((preco - custo) / custo) * 100).toFixed(1);
+      }
 
-<option value="higiene">
-Higiene
-</option>
+      async function abrirCamera() {
+        if (cameraAtiva) {
+          return;
+        }
 
-<option value="limpeza">
-Limpeza
-</option>
+        cameraAtiva = true;
 
-<option value="bazar">
-Bazar
-</option>
+        const reader = document.getElementById("reader");
 
-</select>
+        reader.innerHTML = "";
 
-</div>
+        try {
+          const html5QrCode = new Html5Qrcode("reader");
 
-</div>
+          await html5QrCode.start(
+            {
+              facingMode: {
+                exact: "environment",
+              },
+            },
 
-<div class="flex">
+            {
+              fps: 15,
 
-<button
-class="btn-validade"
-onclick="ordenarPorValidade()"
->
-Ordenar por validade
-</button>
+              qrbox: {
+                width: 280,
+                height: 180,
+              },
 
-<button
-class="btn-atualizar"
-onclick="atualizarSistema()"
->
-Atualizar sistema
-</button>
+              aspectRatio: 1.7,
 
-</div>
+              disableFlip: false,
+            },
 
-<div class="flex">
+            (decodedText) => {
+              if (decodedText === ultimaLeitura) {
+                return;
+              }
 
-<input
-type="text"
-id="buscaRapida"
-placeholder="🔍 Buscar por nome, código ou marca"
-onkeyup="atualizarTabela()"
->
+              ultimaLeitura = decodedText;
 
-</div>
+              navigator.vibrate?.(200);
 
-<table>
+              document.getElementById("codigoBarras").value = decodedText;
 
-<thead>
+              setTimeout(async () => {
+                await html5QrCode.stop();
 
-<tr>
+                cameraAtiva = false;
 
-<th>Imagem</th>
-<th>Código</th>
-<th class="coluna-produto">Produto</th>
-<th>Marca</th>
-<th>Categoria</th>
-<th class="coluna-custo">Custo</th>
-<th>% Lucro</th>
-<th class="coluna-preco">Preço</th>
-<th class="coluna-estoque">Qtd</th>
-<th>Validade</th>
-<th>X</th>
+                buscarProdutoOnline();
+              }, 1200);
+            },
 
-</tr>
+            (errorMessage) => {},
+          );
+        } catch (erro) {
+          console.log(erro);
 
-</thead>
+          cameraAtiva = false;
 
-<tbody id="tabelaProdutos"></tbody>
+          alert("Erro ao acessar câmera traseira");
+        }
+      }
 
-</table>
+      async function buscarProdutoOnline() {
+        const codigo = document.getElementById("codigoBarras").value;
 
-</div>
+        if (bancoProdutos[codigo]) {
+          const produto = bancoProdutos[codigo];
 
-</div>
+          document.getElementById("nome").value = produto.nome;
 
-<script>
+          document.getElementById("categoriaCadastro").value =
+            produto.categoria;
 
-let produtos = [];
+          document.getElementById("estoque").value = 1;
 
-let filtroAtual = "todos";
+          return;
+        }
 
-let cameraAtiva = false;
-let ultimaLeitura = "";
+        if (!codigo) {
+          alert("Digite o código");
 
-const categorias = [
-'alimenticio',
-'bebidas',
-'resfriados',
-'higiene',
-'limpeza',
-'bazar'
-];
+          return;
+        }
 
-let bancoProdutos =
-JSON.parse(
-localStorage.getItem("bancoProdutos")
-) || {
+        let nome = "";
+        let marca = "";
+        let imagem = "";
 
-"7896098900239":{
-nome:"Detergente Líquido Ypê Neutro 500ml",
-marca:"Ypê",
-categoria:"limpeza"
-},
+        try {
+          const resposta = await fetch(
+            "https://world.openfoodfacts.org/api/v0/product/" +
+              codigo +
+              ".json",
+          );
 
-"7896098900215":{
-nome:"Detergente Líquido Ypê Clear 500ml",
-marca:"Ypê",
-categoria:"limpeza"
-},
+          const dados = await resposta.json();
 
-"7891150067011":{
-nome:"Coca-Cola Original 2L",
-marca:"Coca-Cola",
-categoria:"bebidas"
-}
+          if (dados.status === 1) {
+            nome = dados.product.product_name || "";
 
-};
+            marca = dados.product.brands || "";
 
-function salvarDados(){
+            imagem = dados.product.image_url || "";
+          }
+        } catch (erro) {
+          console.log(erro);
+        }
 
-localStorage.setItem(
-'produtos',
-JSON.stringify(produtos)
-);
+        if (nome === "") {
+          alert("Produto não encontrado.\n\nPreencha os dados manualmente.");
 
-}
+          return;
+        }
 
-function ordenarPorValidade(){
+        document.getElementById("nome").value = nome;
+        document.getElementById("estoque").value = 1;
 
-produtos.sort((a,b)=>
-new Date(a.validade) -
-new Date(b.validade)
-);
+        if (!document.getElementById("custo").value) {
+          document.getElementById("custo").value = 0;
+        }
 
-salvarDados();
+        if (!document.getElementById("preco").value) {
+          document.getElementById("preco").value = 0;
+        }
 
-atualizarTabela();
+        if (!document.getElementById("validade").value) {
+          const hoje = new Date();
 
-}
+          hoje.setMonth(hoje.getMonth() + 6);
 
-function atualizarSistema(){
+          document.getElementById("validade").value = hoje
+            .toISOString()
+            .split("T")[0];
+        }
 
-ordenarPorValidade();
+        await adicionarProduto(imagem, marca);
+      }
 
-}
+      async function adicionarProduto(imagem = "", marca = "") {
+        const nome = document.getElementById("nome").value;
 
-function filtrarCategoria(){
+        if (!nome) {
+          alert("Digite o nome");
 
-filtroAtual =
-document.getElementById(
-'filtroCategoria'
-).value;
+          return;
+        }
 
-atualizarTabela();
+        let imagemFinal = imagem;
 
-}
+        const arquivo = document.getElementById("imagemManual").files[0];
 
-function diasParaVencer(validade){
+        if (arquivo) {
+          imagemFinal = await converterImagemBase64(arquivo);
+        }
 
-const hoje = new Date();
+        const novoId =
+          produtos.length > 0 ? Math.max(...produtos.map((p) => p.id)) + 1 : 1;
 
-const vencimento =
-new Date(validade);
+        const produto = {
+          id: novoId,
 
-const diferenca =
-vencimento - hoje;
+          codigoBarras: document.getElementById("codigoBarras").value,
 
-return Math.ceil(
-diferenca /
-(1000*60*60*24)
-);
+          nome: nome,
 
-}
+          categoria: document.getElementById("categoriaCadastro").value,
 
-function converterImagemBase64(file){
+          custo: document.getElementById("custo").value,
 
-return new Promise((resolve)=>{
+          preco: document.getElementById("preco").value,
 
-const reader =
-new FileReader();
+          estoque: document.getElementById("estoque").value,
 
-reader.onload = ()=> resolve(reader.result);
+          validade: document.getElementById("validade").value,
 
-reader.readAsDataURL(file);
+          imagem: imagemFinal,
 
-});
+          marca: marca,
+        };
 
-}
+        if (produto.codigoBarras) {
+          bancoProdutos[produto.codigoBarras] = {
+            nome: produto.nome,
+            marca: produto.marca,
+            categoria: produto.categoria,
+          };
 
-function calcularLucro(custo,preco){
+          localStorage.setItem("bancoProdutos", JSON.stringify(bancoProdutos));
+        }
 
-custo = parseFloat(custo || 0);
-preco = parseFloat(preco || 0);
+        const { error } = await supabaseClient
+          .from("produtos")
+          .insert([
+            {
+              codigo_barras: produto.codigoBarras,
 
-if(custo <= 0) return 0;
+              nome: produto.nome,
 
-return (
-((preco - custo) / custo) * 100
-).toFixed(1);
+              marca: produto.marca,
 
-}
+              categoria: produto.categoria,
 
-async function abrirCamera(){
+              custo: parseFloat(produto.custo || 0),
 
-if(cameraAtiva){
-return;
-}
+              preco: parseFloat(produto.preco || 0),
 
-cameraAtiva = true;
+              estoque: parseInt(produto.estoque || 0),
 
-const reader =
-document.getElementById("reader");
+              validade: produto.validade || null,
 
-reader.innerHTML = "";
+              imagem: produto.imagem,
+            },
+          ])
 
-try{
+          .select();
 
-const html5QrCode =
-new Html5Qrcode("reader");
+        console.log("DATA:", data);
+        console.log("ERROR:", error);
 
-await html5QrCode.start(
+        if (error) {
+          console.error(error);
 
-{
-facingMode:{
-exact:"environment"
-}
-},
+          alert("Erro ao salvar produto: " + error.message);
 
-{
-fps:15,
+          return;
+        }
 
-qrbox:{
-width:280,
-height:180
-},
+        await carregarProdutosSupabase();
 
-aspectRatio:1.7,
+        limparCampos();
 
-disableFlip:false
-},
+        alert("Produto cadastrado com sucesso!");
+      }
 
-(decodedText)=>{
+      function limparCampos() {
+        document.getElementById("codigoBarras").value = "";
+        document.getElementById("nome").value = "";
+        document.getElementById("custo").value = "";
+        document.getElementById("preco").value = "";
+        document.getElementById("estoque").value = "";
+        document.getElementById("validade").value = "";
+        document.getElementById("imagemManual").value = "";
+      }
 
-if(decodedText === ultimaLeitura){
-return;
-}
+      async function removerProduto(id) {
+        console.log("Excluindo:", id);
 
-ultimaLeitura = decodedText;
+        const confirmar = confirm("Deseja realmente excluir este produto?");
 
-navigator.vibrate?.(200);
+        if (!confirmar) {
+          return;
+        }
 
-document.getElementById(
-'codigoBarras'
-).value = decodedText;
+        const { error } = await supabaseClient
+          .from("produtos")
+          .delete()
+          .eq("id", id);
 
-setTimeout(async()=>{
+        console.log("Erro:", error);
 
-await html5QrCode.stop();
+        if (error) {
+          alert("Erro ao excluir: " + error.message);
 
-cameraAtiva = false;
+          return;
+        }
 
-buscarProdutoOnline();
+        alert("Produto excluído com sucesso!");
 
-},1200);
+        await carregarProdutosSupabase();
+      }
 
-},
+      async function atualizarCampo(id, campo, valor) {
+        console.log("UPDATE INICIADO:", { id, campo, valor });
 
-(errorMessage)=>{
+        let valorFinal = valor;
 
-}
+        if (campo === "custo" || campo === "preco") {
+          valorFinal = parseFloat(valor) || 0;
+        }
 
-);
+        if (campo === "estoque") {
+          valorFinal = parseInt(valor) || 0;
+        }
 
-}catch(erro){
+        const mapaCampos = {
+          codigoBarras: "codigo_barras",
+          nome: "nome",
+          marca: "marca",
+          categoria: "categoria",
+          custo: "custo",
+          preco: "preco",
+          estoque: "estoque",
+          validade: "validade",
+          imagem: "imagem",
+        };
 
-console.log(erro);
+        const colunaSupabase = mapaCampos[campo];
 
-cameraAtiva = false;
+        console.log("COLUNA:", colunaSupabase);
 
-alert(
-"Erro ao acessar câmera traseira"
-);
+        const { data, error } = await supabaseClient
+          .from("produtos")
+          .update({
+            [colunaSupabase]: valorFinal,
+          })
+          .eq("id", id)
+          .select();
 
-}
+        console.log("DATA:", data);
+        console.log("ERROR:", error);
 
-}
+        if (error) {
+          alert("Erro update: " + error.message);
+          return;
+        }
+      }
 
-async function buscarProdutoOnline(){
+      async function trocarImagem(event, id) {
+        const arquivo = event.target.files[0];
 
-const codigo =
-document.getElementById(
-'codigoBarras'
-).value;
+        if (!arquivo) return;
 
-if(bancoProdutos[codigo]){
+        const base64 = await converterImagemBase64(arquivo);
 
-const produto = bancoProdutos[codigo];
+        const produto = produtos.find((p) => p.id === id);
 
-document.getElementById('nome').value =
-produto.nome;
+        if (produto) {
+          produto.imagem = base64;
 
-document.getElementById('categoriaCadastro').value =
-produto.categoria;
+          salvarDados();
 
-document.getElementById('estoque').value = 1;
+          atualizarTabela();
+        }
+      }
 
-return;
+      function atualizarTabela() {
+        const tabela = document.getElementById("tabelaProdutos");
 
-}
+        tabela.innerHTML = "";
 
-if(!codigo){
+        const busca =
+          document.getElementById("buscaRapida")?.value?.toLowerCase() || "";
 
-alert('Digite o código');
+        let produtosFiltrados = produtos;
 
-return;
+        produtosFiltrados = produtos.filter((p) => {
+          const categoriaOk =
+            filtroAtual === "todos" || p.categoria === filtroAtual;
 
-}
+          const buscaOk =
+            (p.nome || "").toLowerCase().includes(busca) ||
+            (p.marca || "").toLowerCase().includes(busca) ||
+            (p.codigoBarras || "").toString().includes(busca);
 
-let nome = '';
-let marca = '';
-let imagem = '';
+          return categoriaOk && buscaOk;
+        });
 
-try{
+        produtosFiltrados.forEach((produto) => {
+          const dias = diasParaVencer(produto.validade);
 
-const resposta =
-await fetch(
-'https://world.openfoodfacts.org/api/v0/product/' +
-codigo +
-'.json'
-);
+          const lucro = calcularLucro(produto.custo, produto.preco);
 
-const dados =
-await resposta.json();
+          tabela.innerHTML += `
 
-if(dados.status === 1){
-
-nome =
-dados.product.product_name || '';
-
-marca =
-dados.product.brands || '';
-
-imagem =
-dados.product.image_url || '';
-
-}
-
-}catch(erro){
-
-console.log(erro);
-
-}
-
-if(nome === ''){
-
-alert(
-'Produto não encontrado.\n\nPreencha os dados manualmente.'
-);
-
-return;
-
-}
-
-document.getElementById('nome').value = nome;
-document.getElementById('estoque').value = 1;
-
-if(!document.getElementById('custo').value){
-
-document.getElementById('custo').value = 0;
-
-}
-
-if(!document.getElementById('preco').value){
-
-document.getElementById('preco').value = 0;
-
-}
-
-if(
-!document.getElementById('validade').value
-){
-
-const hoje = new Date();
-
-hoje.setMonth(
-hoje.getMonth()+6
-);
-
-document.getElementById(
-'validade'
-).value =
-hoje.toISOString().split('T')[0];
-
-}
-
-await adicionarProduto(
-imagem,
-marca
-);
-
-}
-
-async function adicionarProduto(
-imagem='',
-marca=''
-){
-
-const nome =
-document.getElementById(
-'nome'
-).value;
-
-if(!nome){
-
-alert('Digite o nome');
-
-return;
-
-}
-
-let imagemFinal = imagem;
-
-const arquivo =
-document.getElementById(
-'imagemManual'
-).files[0];
-
-if(arquivo){
-
-imagemFinal =
-await converterImagemBase64(
-arquivo
-);
-
-}
-
-const novoId =
-produtos.length > 0
-?
-Math.max(...produtos.map(
-p => p.id
-)) + 1
-:
-1;
-
-const produto = {
-
-id:novoId,
-
-codigoBarras:
-document.getElementById(
-'codigoBarras'
-).value,
-
-nome:nome,
-
-categoria:
-document.getElementById(
-'categoriaCadastro'
-).value,
-
-custo:
-document.getElementById(
-'custo'
-).value,
-
-preco:
-document.getElementById(
-'preco'
-).value,
-
-estoque:
-document.getElementById(
-'estoque'
-).value,
-
-validade:
-document.getElementById(
-'validade'
-).value,
-
-imagem:imagemFinal,
-
-marca:marca
-
-};
-
-if(produto.codigoBarras){
-
-bancoProdutos[
-produto.codigoBarras
-] = {
-
-nome:produto.nome,
-marca:produto.marca,
-categoria:produto.categoria
-
-};
-
-localStorage.setItem(
-"bancoProdutos",
-JSON.stringify(bancoProdutos)
-);
-
-}
-
-const { error } =
-await supabaseClient
-.from('produtos')
-.insert([{
-
-codigo_barras:
-produto.codigoBarras,
-
-nome:
-produto.nome,
-
-marca:
-produto.marca,
-
-categoria:
-produto.categoria,
-
-custo:
-parseFloat(produto.custo || 0),
-
-preco:
-parseFloat(produto.preco || 0),
-
-estoque:
-parseInt(produto.estoque || 0),
-
-validade:
-produto.validade || null,
-
-imagem:
-produto.imagem
-
-}])
-
-.select();
-
-console.log('DATA:', data);
-console.log('ERROR:', error);
-
-if(error){
-
-console.error(error);
-
-alert(
-'Erro ao salvar produto: ' +
-error.message
-);
-
-return;
-
-}
-
-await carregarProdutosSupabase();
-
-limparCampos();
-
-alert(
-'Produto cadastrado com sucesso!'
-);
-
-}
-
-function limparCampos(){
-
-document.getElementById('codigoBarras').value='';
-document.getElementById('nome').value='';
-document.getElementById('custo').value='';
-document.getElementById('preco').value='';
-document.getElementById('estoque').value='';
-document.getElementById('validade').value='';
-document.getElementById('imagemManual').value='';
-
-}
-
-async function removerProduto(id){
-
-    console.log("Excluindo:", id);
-
-    const confirmar = confirm(
-        "Deseja realmente excluir este produto?"
-    );
-
-    if(!confirmar){
-        return;
-    }
-
-    const { error } =
-    await supabaseClient
-    .from('produtos')
-    .delete()
-    .eq('id', id);
-
-    console.log("Erro:", error);
-
-    if(error){
-
-        alert(
-            "Erro ao excluir: " +
-            error.message
-        );
-
-        return;
-
-    }
-
-    alert(
-        "Produto excluído com sucesso!"
-    );
-
-    await carregarProdutosSupabase();
-
-}
-
-async function atualizarCampo(id,campo,valor){
-
-    let valorFinal = valor;
-
-    if(campo === 'custo' || campo === 'preco'){
-        valorFinal = parseFloat(valor) || 0;
-    }
-
-    if(campo === 'estoque'){
-        valorFinal = parseInt(valor) || 0;
-    }
-
-    const mapaCampos = {
-        codigoBarras: 'codigo_barras',
-        nome: 'nome',
-        marca: 'marca',
-        categoria: 'categoria',
-        custo: 'custo',
-        preco: 'preco',
-        estoque: 'estoque',
-        validade: 'validade',
-        imagem: 'imagem'
-    };
-
-    const colunaSupabase = mapaCampos[campo];
-
-    if(!colunaSupabase){
-        console.error('Campo não mapeado:', campo);
-        return;
-    }
-
-    const { error } =
-    await supabaseClient
-    .from('produtos')
-    .update({
-        [colunaSupabase]: valorFinal
-    })
-    .eq('id', id);
-
-    if(error){
-
-        console.error(error);
-
-        alert(
-            'Erro ao atualizar: ' +
-            error.message
-        );
-
-        return;
-    }
-
-    const produto =
-    produtos.find(
-        p => p.id === id
-    );
-
-    if(produto){
-        produto[campo] = valor;
-    }
-
-}
-
-async function trocarImagem(event,id){
-
-const arquivo =
-event.target.files[0];
-
-if(!arquivo) return;
-
-const base64 =
-await converterImagemBase64(
-arquivo
-);
-
-const produto =
-produtos.find(
-p => p.id === id
-);
-
-if(produto){
-
-produto.imagem = base64;
-
-salvarDados();
-
-atualizarTabela();
-
-}
-
-}
-
-function atualizarTabela(){
-
-const tabela =
-document.getElementById(
-'tabelaProdutos'
-);
-
-tabela.innerHTML='';
-
-const busca =
-document.getElementById(
-'buscaRapida'
-)?.value
-?.toLowerCase() || '';
-
-let produtosFiltrados =
-produtos;
-
-produtosFiltrados =
-produtos.filter((p)=>{
-
-const categoriaOk =
-
-filtroAtual === "todos"
-||
-p.categoria === filtroAtual;
-
-const buscaOk =
-
-(p.nome || '')
-.toLowerCase()
-.includes(busca)
-
-||
-
-(p.marca || '')
-.toLowerCase()
-.includes(busca)
-
-||
-
-(p.codigoBarras || '')
-.toString()
-.includes(busca);
-
-return categoriaOk && buscaOk;
-
-});
-
-produtosFiltrados.forEach((produto)=>{
-
-const dias =
-diasParaVencer(
-produto.validade
-);
-
-const lucro =
-calcularLucro(
-produto.custo,
-produto.preco
-);
-
-tabela.innerHTML += `
-
-<tr class="${
-dias <= 30
-? 'vencendo'
-: ''
-}">
+<tr class="${dias <= 30 ? "vencendo" : ""}">
 
 <td>
 
@@ -1288,11 +930,9 @@ gap:8px;
 ">
 
 ${
-produto.imagem
-?
-`<img src="${produto.imagem}">`
-:
-`<div style="
+  produto.imagem
+    ? `<img src="${produto.imagem}">`
+    : `<div style="
 width:55px;
 height:55px;
 background:#e5e7eb;
@@ -1332,7 +972,7 @@ ${produto.id}
 
 <input
 class="tabela-input"
-value="${produto.codigoBarras || ''}"
+value="${produto.codigoBarras || ""}"
 onchange="
 atualizarCampo(
 ${produto.id},
@@ -1348,7 +988,7 @@ this.value
 
 <input
 class="tabela-input coluna-produto"
-value="${produto.nome || ''}"
+value="${produto.nome || ""}"
 onchange="
 atualizarCampo(
 ${produto.id},
@@ -1364,7 +1004,7 @@ this.value
 
 <input
 class="tabela-input"
-value="${produto.marca || ''}"
+value="${produto.marca || ""}"
 onchange="
 atualizarCampo(
 ${produto.id},
@@ -1389,14 +1029,18 @@ this.value
 "
 >
 
-${categorias.map(cat => `
+${categorias
+  .map(
+    (cat) => `
 <option
 value="${cat}"
-${produto.categoria === cat ? 'selected' : ''}
+${produto.categoria === cat ? "selected" : ""}
 >
 ${cat}
 </option>
-`).join('')}
+`,
+  )
+  .join("")}
 
 </select>
 
@@ -1424,11 +1068,7 @@ this.value
 
 </td>
 
-<td class="${
-lucro >= 30
-? 'lucro-positivo'
-: 'lucro-baixo'
-}">
+<td class="${lucro >= 30 ? "lucro-positivo" : "lucro-baixo"}">
 
 ${lucro}%
 
@@ -1484,7 +1124,7 @@ this.value
 <input
 class="tabela-input"
 type="date"
-value="${produto.validade || ''}"
+value="${produto.validade || ""}"
 onchange="
 atualizarCampo(
 ${produto.id},
@@ -1512,145 +1152,112 @@ X
 </tr>
 
 `;
+        });
+      }
 
-});
+      atualizarTabela();
 
-}
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("./service-worker.js")
 
-atualizarTabela();
+            .then((reg) => {
+              console.log("PWA carregado", reg);
+            })
 
-if ("serviceWorker" in navigator) {
+            .catch((err) => {
+              console.log("Erro PWA", err);
+            });
+        });
+      }
+    </script>
 
-window.addEventListener("load", () => {
+    <script>
+      const SUPABASE_URL = "https://numvxurdooalgvudbzmd.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51bXZ4dXJkb29hbGd2dWRiem1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MDM3OTcsImV4cCI6MjA5NjA3OTc5N30.T9LpluDVO1EyJ5HaM1pgIZ2uYtxStYoZtNifLJWqtow";
 
-navigator.serviceWorker
-.register("./service-worker.js")
+      const supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY,
+      );
 
-.then((reg) => {
+      async function carregarProdutosSupabase() {
+        const { data, error } = await supabaseClient
+          .from("produtos")
+          .select("*");
 
-console.log(
-"PWA carregado",
-reg
-);
+        if (error) {
+          console.error(error);
 
-})
+          alert("Erro ao carregar produtos: " + error.message);
 
-.catch((err) => {
+          return;
+        }
 
-console.log(
-"Erro PWA",
-err
-);
+        produtos = data || [];
 
-});
+        atualizarTabela();
+      }
 
-});
+      async function carregarProdutosSupabase() {
+        const { data, error } = await supabaseClient
+          .from("produtos")
+          .select("*");
 
-}
+        if (error) {
+          console.error(error);
 
-</script>
+          alert("Erro ao carregar produtos: " + error.message);
 
+          return;
+        }
 
-<script>
-const SUPABASE_URL='https://numvxurdooalgvudbzmd.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51bXZ4dXJkb29hbGd2dWRiem1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MDM3OTcsImV4cCI6MjA5NjA3OTc5N30.T9LpluDVO1EyJ5HaM1pgIZ2uYtxStYoZtNifLJWqtow';
+        produtos = data || [];
 
-const supabaseClient = window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+        atualizarTabela();
+      }
 
-async function carregarProdutosSupabase() {
+      let usuarioAtual = null;
 
-    const { data, error } = await supabaseClient
-        .from('produtos')
-        .select('*');
+      async function registrar() {
+        const email = document.getElementById("email").value;
+        const senha = document.getElementById("senha").value;
+        const { error } = await supabaseClient.auth.signUp({
+          email,
+          password: senha,
+        });
+        if (error) {
+          alert(error.message);
+          return;
+        }
+        alert("Conta criada. Verifique seu e-mail.");
+      }
 
-    if (error) {
+      async function login() {
+        const email = document.getElementById("email").value;
 
-        console.error(error);
+        const senha = document.getElementById("senha").value;
 
-        alert(
-            'Erro ao carregar produtos: ' +
-            error.message
-        );
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email,
+          password: senha,
+        });
 
-        return;
+        if (error) {
+          alert(error.message);
+          return;
+        }
 
-    }
+        usuarioAtual = data.user;
 
-    produtos = data || [];
+        document.getElementById("loginScreen").style.display = "none";
 
-    atualizarTabela();
+        document.getElementById("erpContainer").style.display = "block";
 
-}
-
-async function carregarProdutosSupabase() {
-
-    const { data, error } = await supabaseClient
-        .from('produtos')
-        .select('*');
-
-    if (error) {
-
-        console.error(error);
-
-        alert(
-            'Erro ao carregar produtos: ' +
-            error.message
-        );
-
-        return;
-
-    }
-
-    produtos = data || [];
-
-    atualizarTabela();
-
-}
-
-let usuarioAtual=null;
-
-async function registrar(){
- const email=document.getElementById('email').value;
- const senha=document.getElementById('senha').value;
- const {error}=await supabaseClient.auth.signUp({email,password:senha});
- if(error){alert(error.message);return;}
- alert('Conta criada. Verifique seu e-mail.');
-}
-
-async function login(){
-
- const email =
- document.getElementById('email').value;
-
- const senha =
- document.getElementById('senha').value;
-
- const {data,error} =
- await supabaseClient.auth.signInWithPassword({
-
-   email,
-   password: senha
-
- });
-
- if(error){
-
-   alert(error.message);
-   return;
-
- }
-
- usuarioAtual = data.user;
-
- document.getElementById('loginScreen').style.display='none';
-
- document.getElementById('erpContainer').style.display='block';
-
- await carregarProdutosSupabase();
-
-}
-
-</script>
-</body>
-
+        await carregarProdutosSupabase();
+      }
+    </script>
+  </body>
 </html>
