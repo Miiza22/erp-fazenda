@@ -744,7 +744,7 @@
           localStorage.setItem("bancoProdutos", JSON.stringify(bancoProdutos));
         }
 
-        const { error } = await supabaseClient
+        const { data, error } = await supabaseClient
           .from("produtos")
           .insert([
             {
@@ -873,20 +873,21 @@
 
       async function trocarImagem(event, id) {
         const arquivo = event.target.files[0];
-
         if (!arquivo) return;
 
         const base64 = await converterImagemBase64(arquivo);
 
-        const produto = produtos.find((p) => p.id === id);
+        const { error } = await supabaseClient
+          .from("produtos")
+          .update({ imagem: base64 })
+          .eq("id", id);
 
-        if (produto) {
-          produto.imagem = base64;
-
-          salvarDados();
-
-          atualizarTabela();
+        if (error) {
+          alert("Erro ao salvar imagem: " + error.message);
+          return;
         }
+
+        await carregarProdutosSupabase();
       }
 
       function atualizarTabela() {
