@@ -500,7 +500,8 @@
         },
       };
 
-      function salvarDados() {
+      /* REFATORAÇÃO V2: LocalStorage deve ser removido gradualmente */
+function salvarDados() {
         localStorage.setItem("produtos", JSON.stringify(produtos));
       }
 
@@ -744,7 +745,7 @@
           localStorage.setItem("bancoProdutos", JSON.stringify(bancoProdutos));
         }
 
-        const { data, error } = await supabaseClient
+        const { error } = await supabaseClient
           .from("produtos")
           .insert([
             {
@@ -781,7 +782,8 @@
           return;
         }
 
-        await carregarProdutosSupabase();
+        // REFATORAÇÃO V2
+await carregarProdutosSupabase();
 
         limparCampos();
 
@@ -822,7 +824,8 @@
 
         alert("Produto excluído com sucesso!");
 
-        await carregarProdutosSupabase();
+        // REFATORAÇÃO V2
+await carregarProdutosSupabase();
       }
 
       async function atualizarCampo(id, campo, valor) {
@@ -873,21 +876,20 @@
 
       async function trocarImagem(event, id) {
         const arquivo = event.target.files[0];
+
         if (!arquivo) return;
 
         const base64 = await converterImagemBase64(arquivo);
 
-        const { error } = await supabaseClient
-          .from("produtos")
-          .update({ imagem: base64 })
-          .eq("id", id);
+        const produto = produtos.find((p) => p.id === id);
 
-        if (error) {
-          alert("Erro ao salvar imagem: " + error.message);
-          return;
+        if (produto) {
+          produto.imagem = base64;
+
+          salvarDados();
+
+          atualizarTabela();
         }
-
-        await carregarProdutosSupabase();
       }
 
       function atualizarTabela() {
@@ -1257,7 +1259,8 @@ X
 
         document.getElementById("erpContainer").style.display = "block";
 
-        await carregarProdutosSupabase();
+        // REFATORAÇÃO V2
+await carregarProdutosSupabase();
       }
     </script>
   </body>
