@@ -324,7 +324,7 @@
           <input type="number" id="preco" placeholder="Preço venda" class="campo-preco" step="0.01" />
           <input type="number" id="estoque" placeholder="Qtd" class="campo-estoque" min="0" />
           <input type="date" id="validade" />
-          <input type="file" id="imagemManual" accept="image/*" />
+          <input type="file" id="imagemManual" accept="image/*" capture="environment" />
         </div>
         <div class="flex">
           <button class="btn-ia" onclick="buscarProdutoOnline()">Cadastro Inteligente IA</button>
@@ -449,6 +449,31 @@
           marca: "Água da Serra",
           categoria: "bebidas",
         },
+        7792070055143: {
+          nome: "Azeitona Verde Nucete com Caroço Doypack 120g",
+          marca: "Nucete",
+          categoria: "alimenticio",
+        },
+        7896183903534: {
+          nome: "Vinagre de Maçã Zaeli 500ml",
+          marca: "Zaeli",
+          categoria: "alimenticio",
+        },
+        7899894800789: {
+          nome: "Cobertura para Sorvete Morango Sorvetemix Ello 300g",
+          marca: "Ello",
+          categoria: "alimenticio",
+        },
+        7896005271964: {
+          nome: "Fermento Biológico Seco Instantâneo Dona Benta Fermix 10g",
+          marca: "Dona Benta",
+          categoria: "alimenticio",
+        },
+        7896054905483: {
+          nome: "Molho Barbecue D'Ajuda 190g",
+          marca: "D'Ajuda",
+          categoria: "alimenticio",
+        },
       };
 
       let bancoProdutos = {
@@ -474,6 +499,36 @@
           nome: "Produto Downy - verificar descrição",
           marca: "Downy",
           categoria: "limpeza",
+        },
+        {
+          prefixo: "7792070055",
+          nome: "Produto Nucete - verificar descrição",
+          marca: "Nucete",
+          categoria: "alimenticio",
+        },
+        {
+          prefixo: "789618390",
+          nome: "Produto Zaeli - verificar descrição",
+          marca: "Zaeli",
+          categoria: "alimenticio",
+        },
+        {
+          prefixo: "789989480",
+          nome: "Produto Sorvetemix/Ello - verificar descrição",
+          marca: "Ello",
+          categoria: "alimenticio",
+        },
+        {
+          prefixo: "789600527",
+          nome: "Produto Dona Benta/Fermix - verificar descrição",
+          marca: "Dona Benta",
+          categoria: "alimenticio",
+        },
+        {
+          prefixo: "789605490",
+          nome: "Produto D'Ajuda - verificar descrição",
+          marca: "D'Ajuda",
+          categoria: "alimenticio",
         },
       ];
 
@@ -543,6 +598,7 @@
         const regras = [
           { categoria: "bebidas", termos: ["bebida", "refrigerante", "refri", "suco", "nectar", "água", "agua", "cerveja", "vinho", "tônica", "tonica", "energético", "energetico"] },
           { categoria: "limpeza", termos: ["amaciante", "detergente", "lava", "louça", "loucas", "limpeza", "desinfetante", "sabão", "sabao", "saboneteira", "alvejante", "água sanitária", "agua sanitaria", "multiuso", "roupa"] },
+          { categoria: "alimenticio", termos: ["azeitona", "vinagre", "molho", "barbecue", "fermento", "cobertura", "sorvete", "tempero", "condimento", "maionese", "ketchup", "mostarda", "arroz", "feijão", "feijao", "macarrão", "macarrao", "farinha", "açúcar", "acucar", "café", "cafe"] },
           { categoria: "higiene", termos: ["higiene", "sabonete", "shampoo", "condicionador", "creme dental", "desodorante", "absorvente", "fralda", "papel higiênico", "papel higienico"] },
           { categoria: "resfriados", termos: ["iogurte", "queijo", "manteiga", "margarina", "refrigerado", "resfriado", "frios", "presunto", "mortadela", "requeijão", "requeijao"] },
           { categoria: "bazar", termos: ["bazar", "utilidade", "utensílio", "utensilio", "plástico", "plastico", "copo descartável", "copo descartavel", "papel alumínio", "papel aluminio"] },
@@ -1166,7 +1222,7 @@
                     ${imagem}
                     <label class="label-camera">
                       Foto
-                      <input class="input-camera" type="file" accept="image/*" onchange="trocarImagem(event,'${idProduto}')">
+                      <input class="input-camera" type="file" accept="image/*" capture="environment" onchange="trocarImagem(event,'${idProduto}')">
                     </label>
                   </div>
                 </td>
