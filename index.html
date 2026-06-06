@@ -309,11 +309,11 @@
       <div class="card">
         <h2>Cadastro Inteligente</h2>
         <div class="flex">
-          <input type="text" id="codigoBarras" placeholder="CÃ³digo de barras" />
+          <input type="text" id="codigoBarras" placeholder="Código de barras" />
           <input type="text" id="nome" placeholder="Nome produto" class="campo-produto" />
           <input type="text" id="marcaCadastro" placeholder="Marca" />
           <select id="categoriaCadastro">
-            <option value="alimenticio">AlimentÃ­cio</option>
+            <option value="alimenticio">Alimentício</option>
             <option value="bebidas">Bebidas</option>
             <option value="resfriados">Resfriados</option>
             <option value="higiene">Higiene</option>
@@ -321,7 +321,7 @@
             <option value="bazar">Bazar</option>
           </select>
           <input type="number" id="custo" placeholder="Custo" class="campo-custo" step="0.01" />
-          <input type="number" id="preco" placeholder="PreÃ§o venda" class="campo-preco" step="0.01" />
+          <input type="number" id="preco" placeholder="Preço venda" class="campo-preco" step="0.01" />
           <input type="number" id="estoque" placeholder="Qtd" class="campo-estoque" min="0" />
           <input type="date" id="validade" />
           <input type="file" id="imagemManual" accept="image/*" />
@@ -329,7 +329,7 @@
         <div class="flex">
           <button class="btn-ia" onclick="buscarProdutoOnline()">Cadastro Inteligente IA</button>
           <button class="btn-manual" onclick="adicionarProduto()">Adicionar Manual</button>
-          <button class="btn-camera" onclick="abrirCamera()">Escanear CÃ³digo</button>
+          <button class="btn-camera" onclick="abrirCamera()">Escanear Código</button>
         </div>
         <div id="reader"></div>
       </div>
@@ -340,7 +340,7 @@
           <div class="flex">
             <select id="filtroCategoria" onchange="filtrarCategoria()">
               <option value="todos">Todas categorias</option>
-              <option value="alimenticio">AlimentÃ­cio</option>
+              <option value="alimenticio">Alimentício</option>
               <option value="bebidas">Bebidas</option>
               <option value="resfriados">Resfriados</option>
               <option value="higiene">Higiene</option>
@@ -359,7 +359,7 @@
           <input
             type="text"
             id="buscaRapida"
-            placeholder="Buscar por nome, cÃ³digo ou marca"
+            placeholder="Buscar por nome, código ou marca"
             onkeyup="atualizarTabela()"
           />
         </div>
@@ -368,13 +368,13 @@
           <thead>
             <tr>
               <th>Imagem</th>
-              <th>CÃ³digo</th>
+              <th>Código</th>
               <th class="coluna-produto">Produto</th>
               <th>Marca</th>
               <th>Categoria</th>
               <th class="coluna-custo">Custo</th>
               <th>% Lucro</th>
-              <th class="coluna-preco">PreÃ§o</th>
+              <th class="coluna-preco">Preço</th>
               <th class="coluna-estoque">Qtd</th>
               <th>Validade</th>
               <th>X</th>
@@ -407,7 +407,7 @@
         try {
           return JSON.parse(localStorage.getItem("bancoProdutos")) || {};
         } catch (erro) {
-          console.warn("Banco local de produtos invÃ¡lido. Recriando cache.", erro);
+          console.warn("Banco local de produtos inválido. Recriando cache.", erro);
           localStorage.removeItem("bancoProdutos");
           return {};
         }
@@ -415,13 +415,13 @@
 
       const bancoProdutosPadrao = {
         7896098900239: {
-          nome: "Detergente LÃ­quido YpÃª Neutro 500ml",
-          marca: "YpÃª",
+          nome: "Detergente Líquido Ypê Neutro 500ml",
+          marca: "Ypê",
           categoria: "limpeza",
         },
         7896098900215: {
-          nome: "Detergente LÃ­quido YpÃª Clear 500ml",
-          marca: "YpÃª",
+          nome: "Detergente Líquido Ypê Clear 500ml",
+          marca: "Ypê",
           categoria: "limpeza",
         },
         7891150067011: {
@@ -430,8 +430,13 @@
           categoria: "bebidas",
         },
         7891035024399: {
-          nome: "Detergente para Lava-LouÃ§as em PÃ³ Finish Power Powder Advanced 450g",
+          nome: "Detergente para Lava-Louças em Pó Finish Power Powder Advanced 450g",
           marca: "Finish",
+          categoria: "limpeza",
+        },
+        7891024194652: {
+          nome: "Desinfetante Pinho Sol Original Leve 1L Pague 900ml",
+          marca: "Pinho Sol",
           categoria: "limpeza",
         },
       };
@@ -505,11 +510,11 @@
         const conteudo = String(texto || "").toLowerCase();
 
         const regras = [
-          { categoria: "bebidas", termos: ["bebida", "refrigerante", "suco", "agua", "Ã¡gua", "cerveja", "vinho"] },
-          { categoria: "limpeza", termos: ["detergente", "lava", "louÃ§a", "loucas", "limpeza", "desinfetante", "sabÃ£o", "saboneteira"] },
+          { categoria: "bebidas", termos: ["bebida", "refrigerante", "suco", "agua", "água", "cerveja", "vinho"] },
+          { categoria: "limpeza", termos: ["detergente", "lava", "louça", "loucas", "limpeza", "desinfetante", "sabão", "saboneteira"] },
           { categoria: "higiene", termos: ["higiene", "sabonete", "shampoo", "condicionador", "creme dental", "desodorante"] },
           { categoria: "resfriados", termos: ["iogurte", "queijo", "manteiga", "refrigerado", "resfriado", "frios"] },
-          { categoria: "bazar", termos: ["bazar", "utilidade", "utensÃ­lio", "utensilio", "plÃ¡stico", "plastico"] },
+          { categoria: "bazar", termos: ["bazar", "utilidade", "utensílio", "utensilio", "plástico", "plastico"] },
         ];
 
         const regra = regras.find((item) => item.termos.some((termo) => conteudo.includes(termo)));
@@ -566,6 +571,34 @@
         };
       }
 
+      function normalizarProdutoBarcodeMonster(dados) {
+        const nome = limparTextoProduto(dados?.description || dados?.title || dados?.name);
+
+        if (!nome) return null;
+
+        return {
+          nome,
+          marca: limparTextoProduto(dados.brand || dados.company),
+          categoria: inferirCategoriaProduto(`${dados.category || ""} ${nome}`, "alimenticio"),
+          imagem: dados.image || "",
+          fonte: "Barcode Monster",
+        };
+      }
+
+      function buscarProdutoJaCarregado(codigo) {
+        const produto = produtos.find((item) => String(item.codigoBarras) === String(codigo));
+
+        if (!produto) return null;
+
+        return {
+          nome: produto.nome || "",
+          marca: produto.marca || "",
+          categoria: produto.categoria || "alimenticio",
+          imagem: produto.imagem || "",
+          fonte: "Produtos cadastrados",
+        };
+      }
+
       async function buscarJson(url) {
         const resposta = await fetch(url, {
           headers: {
@@ -606,6 +639,16 @@
             nome: "UPC Item DB",
             url: `https://api.upcitemdb.com/prod/trial/lookup?upc=${codigo}`,
             normalizar: normalizarProdutoUpcItemDb,
+          },
+          {
+            nome: "Barcode Monster",
+            url: `https://barcode.monster/api/${codigo}`,
+            normalizar: normalizarProdutoBarcodeMonster,
+          },
+          {
+            nome: "Open Pet Food Facts",
+            url: `https://world.openpetfoodfacts.org/api/v2/product/${codigo}.json`,
+            normalizar: (dados) => normalizarProdutoOpenFacts(dados, "Open Pet Food Facts", "alimenticio"),
           },
         ];
 
@@ -679,15 +722,15 @@
 
         cameraAtiva = true;
         const reader = document.getElementById("reader");
-        reader.innerHTML = "<p style='padding:12px;color:#4b5563;'>Abrindo cÃ¢mera...</p>";
+        reader.innerHTML = "<p style='padding:12px;color:#4b5563;'>Abrindo câmera...</p>";
 
         try {
           if (!window.isSecureContext) {
-            throw new Error("A cÃ¢mera sÃ³ funciona em HTTPS ou localhost.");
+            throw new Error("A câmera só funciona em HTTPS ou localhost.");
           }
 
           if (!window.Html5Qrcode) {
-            throw new Error("Leitor de cÃ³digo de barras nÃ£o carregou. Verifique a internet e recarregue a pÃ¡gina.");
+            throw new Error("Leitor de código de barras não carregou. Verifique a internet e recarregue a página.");
           }
 
           const configuracao = {
@@ -700,7 +743,7 @@
           const cameras = await Html5Qrcode.getCameras();
 
           if (!cameras.length) {
-            throw new Error("Nenhuma cÃ¢mera foi encontrada neste dispositivo.");
+            throw new Error("Nenhuma câmera foi encontrada neste dispositivo.");
           }
 
           const cameraPreferida =
@@ -723,13 +766,13 @@
                   await leitorCamera.stop();
                 }
               } catch (erroParada) {
-                console.warn("NÃ£o foi possÃ­vel parar a cÃ¢mera:", erroParada);
+                console.warn("Não foi possível parar a câmera:", erroParada);
               }
 
               try {
                 await leitorCamera?.clear();
               } catch (erroLimpeza) {
-                console.warn("NÃ£o foi possÃ­vel limpar o leitor:", erroLimpeza);
+                console.warn("Não foi possível limpar o leitor:", erroLimpeza);
               }
 
               cameraAtiva = false;
@@ -748,13 +791,13 @@
               await leitorCamera.stop();
             }
           } catch (erroParada) {
-            console.warn("NÃ£o foi possÃ­vel parar a cÃ¢mera apÃ³s erro:", erroParada);
+            console.warn("Não foi possível parar a câmera após erro:", erroParada);
           }
 
           try {
             await leitorCamera?.clear();
           } catch (erroLimpeza) {
-            console.warn("NÃ£o foi possÃ­vel limpar o leitor apÃ³s erro:", erroLimpeza);
+            console.warn("Não foi possível limpar o leitor após erro:", erroLimpeza);
           }
 
           cameraAtiva = false;
@@ -763,7 +806,7 @@
           reader.innerHTML = "";
 
           alert(
-            `Erro ao acessar cÃ¢mera.\n\n${erro.message || erro}\n\nConfira se vocÃª permitiu a cÃ¢mera no navegador e toque em Escanear CÃ³digo novamente.`,
+            `Erro ao acessar câmera.\n\n${erro.message || erro}\n\nConfira se você permitiu a câmera no navegador e toque em Escanear Código novamente.`,
           );
         }
       }
@@ -772,7 +815,15 @@
         const codigo = document.getElementById("codigoBarras").value.trim();
 
         if (!codigo) {
-          alert("Digite o cÃ³digo");
+          alert("Digite o código");
+          return;
+        }
+
+        const produtoJaCadastrado = buscarProdutoJaCarregado(codigo);
+
+        if (produtoJaCadastrado) {
+          preencherProdutoEncontrado(produtoJaCadastrado);
+          alert("Este produto já está cadastrado. Atualize a quantidade na tabela de produtos.");
           return;
         }
 
@@ -786,7 +837,7 @@
 
         if (!produtoEncontrado) {
           alert(
-            "Produto nÃ£o encontrado nas bases automÃ¡ticas.\n\nPreencha os dados manualmente e, depois de salvar, o app lembrarÃ¡ este cÃ³digo.",
+            "Produto não encontrado nas bases automáticas.\n\nPreencha os dados manualmente e, depois de salvar, o app lembrará este código.",
           );
           return;
         }
@@ -906,7 +957,7 @@
         }
 
         await carregarProdutosSupabase();
-        alert("Produto excluÃ­do com sucesso!");
+        alert("Produto excluído com sucesso!");
       }
 
       async function atualizarCampo(id, campo, valor) {
@@ -924,7 +975,7 @@
 
         const colunaSupabase = mapaCampos[campo];
         if (!colunaSupabase) {
-          console.error("Campo nÃ£o mapeado:", campo);
+          console.error("Campo não mapeado:", campo);
           return;
         }
 
