@@ -399,7 +399,17 @@
 
       const categorias = ["alimenticio", "bebidas", "resfriados", "higiene", "limpeza", "bazar"];
 
-      let bancoProdutos = JSON.parse(localStorage.getItem("bancoProdutos")) || {
+      function carregarBancoProdutosLocal() {
+        try {
+          return JSON.parse(localStorage.getItem("bancoProdutos")) || {};
+        } catch (erro) {
+          console.warn("Banco local de produtos inválido. Recriando cache.", erro);
+          localStorage.removeItem("bancoProdutos");
+          return {};
+        }
+      }
+
+      const bancoProdutosPadrao = {
         7896098900239: {
           nome: "Detergente Líquido Ypê Neutro 500ml",
           marca: "Ypê",
@@ -415,6 +425,16 @@
           marca: "Coca-Cola",
           categoria: "bebidas",
         },
+        7891035024399: {
+          nome: "Detergente para Lava-Louças em Pó Finish Power Powder Advanced 450g",
+          marca: "Finish",
+          categoria: "limpeza",
+        },
+      };
+
+      let bancoProdutos = {
+        ...bancoProdutosPadrao,
+        ...carregarBancoProdutosLocal(),
       };
 
       function normalizarProduto(produto) {
@@ -475,6 +495,145 @@
         };
 
         localStorage.setItem("bancoProdutos", JSON.stringify(bancoProdutos));
+      }
+
+      function inferirCategoriaProduto(texto, categoriaPadrao = "alimenticio") {
+        const conteudo = String(texto || "").toLowerCase();
+
+        const regras = [
+          { categoria: "bebidas", termos: ["bebida", "refrigerante", "suco", "agua", "água", "cerveja", "vinho"] },
+          { categoria: "limpeza", termos: ["detergente", "lava", "louça", "loucas", "limpeza", "desinfetante", "sabão", "saboneteira"] },
+          { categoria: "higiene", termos: ["higiene", "sabonete", "shampoo", "condicionador", "creme dental", "desodorante"] },
+          { categoria: "resfriados", termos: ["iogurte", "queijo", "manteiga", "refrigerado", "resfriado", "frios"] },
+          { categoria: "bazar", termos: ["bazar", "utilidade", "utensílio", "utensilio", "plástico", "plastico"] },
+        ];
+
+        const regra = regras.find((item) => item.termos.some((termo) => conteudo.includes(termo)));
+        return regra?.categoria || categoriaPadrao;
+      }
+
+      function limparTextoProduto(valor) {
+        return String(valor || "").replace(/\s+/g, " ").trim();
+      }
+
+      function normalizarProdutoOpenFacts(dados, fonte, categoriaPadrao) {
+        if (!dados || dados.status !== 1 || !dados.product) return null;
+
+        const produto = dados.product;
+        const nome = limparTextoProduto(
+          produto.product_name_pt ||
+            produto.product_name_br ||
+            produto.product_name ||
+            produto.generic_name_pt ||
+            produto.generic_name,
+        );
+
+        if (!nome) return null;
+
+        const marca = limparTextoProduto(produto.brands || produto.brands_tags?.[0]);
+        const textoCategoria = [
+          produto.categories,
+          produto.categories_hierarchy?.join(" "),
+          produto.labels,
+          nome,
+        ].join(" ");
+
+        return {
+          nome,
+          marca,
+          categoria: inferirCategoriaProduto(textoCategoria, categoriaPadrao),
+          imagem: produto.image_front_url || produto.image_url || "",
+          fonte,
+        };
+      }
+
+      function normalizarProdutoUpcItemDb(dados) {
+        const item = dados?.items?.[0];
+        if (!item?.title) return null;
+
+        const nome = limparTextoProduto(item.title);
+
+        return {
+          nome,
+          marca: limparTextoProduto(item.brand),
+          categoria: inferirCategoriaProduto(`${item.category || ""} ${nome}`, "alimenticio"),
+          imagem: item.images?.[0] || "",
+          fonte: "UPC Item DB",
+        };
+      }
+
+      async function buscarJson(url) {
+        const resposta = await fetch(url, {
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!resposta.ok) {
+          throw new Error(`HTTP ${resposta.status}`);
+        }
+
+        return resposta.json();
+      }
+
+      async function buscarProdutoEmFontes(codigo) {
+        const fontes = [
+          {
+            nome: "Open Food Facts Brasil",
+            url: `https://br.openfoodfacts.org/api/v2/product/${codigo}.json`,
+            normalizar: (dados) => normalizarProdutoOpenFacts(dados, "Open Food Facts Brasil", "alimenticio"),
+          },
+          {
+            nome: "Open Food Facts Mundial",
+            url: `https://world.openfoodfacts.org/api/v2/product/${codigo}.json`,
+            normalizar: (dados) => normalizarProdutoOpenFacts(dados, "Open Food Facts Mundial", "alimenticio"),
+          },
+          {
+            nome: "Open Beauty Facts",
+            url: `https://world.openbeautyfacts.org/api/v2/product/${codigo}.json`,
+            normalizar: (dados) => normalizarProdutoOpenFacts(dados, "Open Beauty Facts", "higiene"),
+          },
+          {
+            nome: "Open Products Facts",
+            url: `https://world.openproductsfacts.org/api/v2/product/${codigo}.json`,
+            normalizar: (dados) => normalizarProdutoOpenFacts(dados, "Open Products Facts", "limpeza"),
+          },
+          {
+            nome: "UPC Item DB",
+            url: `https://api.upcitemdb.com/prod/trial/lookup?upc=${codigo}`,
+            normalizar: normalizarProdutoUpcItemDb,
+          },
+        ];
+
+        for (const fonte of fontes) {
+          try {
+            const dados = await buscarJson(fonte.url);
+            const produto = fonte.normalizar(dados);
+
+            if (produto?.nome) {
+              return produto;
+            }
+          } catch (erro) {
+            console.warn(`Busca falhou em ${fonte.nome}:`, erro);
+          }
+        }
+
+        return null;
+      }
+
+      function preencherProdutoEncontrado(produto) {
+        document.getElementById("nome").value = produto.nome || "";
+        document.getElementById("marcaCadastro").value = produto.marca || "";
+        document.getElementById("categoriaCadastro").value = produto.categoria || "alimenticio";
+        document.getElementById("estoque").value = document.getElementById("estoque").value || 1;
+        document.getElementById("custo").value ||= 0;
+        document.getElementById("preco").value ||= 0;
+
+        if (!document.getElementById("validade").value) {
+          const hoje = new Date();
+          hoje.setMonth(hoje.getMonth() + 6);
+          document.getElementById("validade").value = hoje.toISOString().split("T")[0];
+        }
       }
 
       function converterImagemBase64(file) {
@@ -602,6 +761,33 @@
         }
 
         await adicionarProduto(imagem, marca);
+      }
+
+      async function buscarProdutoOnline() {
+        const codigo = document.getElementById("codigoBarras").value.trim();
+
+        if (!codigo) {
+          alert("Digite o código");
+          return;
+        }
+
+        if (bancoProdutos[codigo]) {
+          preencherProdutoEncontrado(bancoProdutos[codigo]);
+          await adicionarProduto();
+          return;
+        }
+
+        const produtoEncontrado = await buscarProdutoEmFontes(codigo);
+
+        if (!produtoEncontrado) {
+          alert(
+            "Produto não encontrado nas bases automáticas.\n\nPreencha os dados manualmente e, depois de salvar, o app lembrará este código.",
+          );
+          return;
+        }
+
+        preencherProdutoEncontrado(produtoEncontrado);
+        await adicionarProduto(produtoEncontrado.imagem, produtoEncontrado.marca);
       }
 
       async function adicionarProduto(imagem = "", marca = "") {
