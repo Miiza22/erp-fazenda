@@ -394,6 +394,7 @@
       let produtos = [];
       let filtroAtual = "todos";
       let cameraAtiva = false;
+      let leitorCamera = null;
       let ultimaLeitura = "";
       let usuarioAtual = null;
 
@@ -706,6 +707,79 @@
           console.error(erro);
           cameraAtiva = false;
           alert("Erro ao acessar câmera");
+        }
+      }
+
+      async function abrirCamera() {
+        if (cameraAtiva) return;
+
+        cameraAtiva = true;
+        const reader = document.getElementById("reader");
+        reader.innerHTML = "<p style='padding:12px;color:#4b5563;'>Abrindo câmera...</p>";
+
+        try {
+          if (!window.isSecureContext) {
+            throw new Error("A câmera só funciona em HTTPS ou localhost.");
+          }
+
+          if (!window.Html5Qrcode) {
+            throw new Error("Leitor de código de barras não carregou. Verifique a internet e recarregue a página.");
+          }
+
+          leitorCamera = new Html5Qrcode("reader");
+
+          const configuracao = {
+            fps: 15,
+            qrbox: { width: 280, height: 180 },
+            aspectRatio: 1.7,
+            disableFlip: false,
+          };
+
+          const aoLerCodigo = (decodedText) => {
+            if (decodedText === ultimaLeitura) return;
+
+            ultimaLeitura = decodedText;
+            navigator.vibrate?.(200);
+            document.getElementById("codigoBarras").value = decodedText;
+
+            setTimeout(async () => {
+              try {
+                await leitorCamera?.stop();
+              } catch (erroParada) {
+                console.warn("Não foi possível parar a câmera:", erroParada);
+              }
+
+              cameraAtiva = false;
+              leitorCamera = null;
+              buscarProdutoOnline();
+            }, 1200);
+          };
+
+          try {
+            await leitorCamera.start({ facingMode: { ideal: "environment" } }, configuracao, aoLerCodigo, () => {});
+          } catch (erroCameraTraseira) {
+            console.warn("Câmera traseira não disponível, tentando outra câmera:", erroCameraTraseira);
+
+            const cameras = await Html5Qrcode.getCameras();
+
+            if (!cameras.length) {
+              throw new Error("Nenhuma câmera foi encontrada neste dispositivo.");
+            }
+
+            const cameraPreferida =
+              cameras.find((camera) => /back|rear|environment|traseira/i.test(camera.label)) || cameras[0];
+
+            await leitorCamera.start(cameraPreferida.id, configuracao, aoLerCodigo, () => {});
+          }
+        } catch (erro) {
+          console.error(erro);
+          cameraAtiva = false;
+          leitorCamera = null;
+          reader.innerHTML = "";
+
+          alert(
+            `Erro ao acessar câmera.\n\n${erro.message || erro}\n\nConfira se você permitiu a câmera no navegador e se abriu o sistema por HTTPS.`,
+          );
         }
       }
 
