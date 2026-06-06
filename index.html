@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ERP IA Fazenda Supermercado</title>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#111827" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        min-height: 100vh;
+        overflow-x: hidden;
+        background: #f3f4f6;
+        color: #111827;
+        font-family: Arial, sans-serif;
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background-image: url("https://i.imgur.com/zYIlgBl.png");
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 65%;
+        content: "";
+        opacity: 0.05;
+      }
+
+      header {
+        background: linear-gradient(90deg, #111827, #1f2937);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        color: white;
+        font-size: 34px;
+        font-weight: bold;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .logo-titulo {
+        color: #f97316;
+      }
+
+      .container {
+        width: 95%;
+        max-width: 1700px;
+        margin: 20px auto;
+      }
+
+      .card {
+        margin-bottom: 25px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.97);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        padding: 25px;
+      }
+
+      .card h2 {
+        margin-bottom: 20px;
+      }
+
+      .flex {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 15px;
+      }
+
+      input,
+      select {
+        min-width: 170px;
+        flex: 1;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 15px;
+        padding: 14px;
+      }
+
+      .campo-produto {
+        min-width: 320px !important;
+        flex: 2 !important;
+      }
+
+      .campo-estoque,
+      .coluna-estoque {
+        width: 75px;
+        min-width: 75px !important;
+        max-width: 75px !important;
+      }
+
+      .campo-custo,
+      .coluna-custo,
+      .campo-preco,
+      .coluna-preco {
+        width: 90px;
+        min-width: 90px !important;
+        max-width: 90px !important;
+      }
+
+      .coluna-produto {
+        min-width: 280px;
+      }
+
+      button {
+        border: 0;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        padding: 12px 18px;
+        transition: transform 0.2s;
+      }
+
+      button:hover {
+        transform: scale(1.03);
+      }
+
+      .btn-ia {
+        background: #16a34a;
+      }
+
+      .btn-manual {
+        background: #2563eb;
+      }
+
+      .btn-camera {
+        background: #f97316;
+      }
+
+      .btn-validade {
+        background: #7c3aed;
+      }
+
+      .btn-atualizar {
+        background: #0891b2;
+      }
+
+      .btn-excluir {
+        width: 38px;
+        height: 38px;
+        background: #dc2626;
+        font-size: 20px;
+        padding: 0;
+      }
+
+      #reader {
+        width: 100%;
+        max-width: 500px;
+        margin-top: 20px;
+        overflow: hidden;
+        border-radius: 8px;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+        background: white;
+      }
+
+      th {
+        background: #f3f4f6;
+        font-size: 14px;
+        padding: 15px;
+      }
+
+      td {
+        border-top: 1px solid #e5e7eb;
+        padding: 10px;
+        text-align: center;
+      }
+
+      tr:hover {
+        background: #f9fafb;
+      }
+
+      .vencendo {
+        background: #fef2f2;
+      }
+
+      .lucro-positivo {
+        color: #15803d;
+        font-weight: bold;
+      }
+
+      .lucro-baixo {
+        color: #dc2626;
+        font-weight: bold;
+      }
+
+      input.tabela-input,
+      select.tabela-select {
+        width: 100%;
+        min-width: 100px;
+        padding: 8px;
+        font-size: 13px;
+      }
+
+      td img,
+      .sem-imagem {
+        width: 55px;
+        height: 55px;
+        border: 2px solid #d1d5db;
+        border-radius: 8px;
+        object-fit: cover;
+      }
+
+      .sem-imagem {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e5e7eb;
+        color: #4b5563;
+        font-size: 11px;
+      }
+
+      .input-camera {
+        display: none;
+      }
+
+      .label-camera {
+        display: flex;
+        width: 42px;
+        height: 42px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+        transition: transform 0.2s;
+      }
+
+      .label-camera:hover {
+        transform: scale(1.08);
+        background: #1d4ed8;
+      }
+
+      .filtro-box {
+        margin-bottom: 20px;
+        border-radius: 8px;
+        background: #eef2ff;
+        padding: 15px;
+      }
+
+      .imagem-acoes {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      @media (max-width: 768px) {
+        input,
+        select,
+        button {
+          width: 100%;
+          min-width: 100%;
+        }
+
+        table {
+          display: block;
+          overflow-x: auto;
+        }
+
+        header {
+          font-size: 25px;
+        }
+
+        .btn-excluir {
+          width: 38px !important;
+          min-width: 38px !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header><span class="logo-titulo">ERP IA</span> Fazenda Supermercado</header>
+
+    <div id="loginScreen" class="container">
+      <div class="card">
+        <h2>Login ERP Fazenda</h2>
+        <div class="flex">
+          <input type="email" id="email" placeholder="E-mail" autocomplete="email" />
+          <input type="password" id="senha" placeholder="Senha" autocomplete="current-password" />
+          <button class="btn-manual" onclick="login()">Entrar</button>
+          <button class="btn-ia" onclick="registrar()">Criar Conta</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container" id="erpContainer" style="display: none">
+      <div class="card">
+        <h2>Cadastro Inteligente</h2>
+        <div class="flex">
+          <input type="text" id="codigoBarras" placeholder="Código de barras" />
+          <input type="text" id="nome" placeholder="Nome produto" class="campo-produto" />
+          <input type="text" id="marcaCadastro" placeholder="Marca" />
+          <select id="categoriaCadastro">
+            <option value="alimenticio">Alimentício</option>
+            <option value="bebidas">Bebidas</option>
+            <option value="resfriados">Resfriados</option>
+            <option value="higiene">Higiene</option>
+            <option value="limpeza">Limpeza</option>
+            <option value="bazar">Bazar</option>
+          </select>
+          <input type="number" id="custo" placeholder="Custo" class="campo-custo" step="0.01" />
+          <input type="number" id="preco" placeholder="Preço venda" class="campo-preco" step="0.01" />
+          <input type="number" id="estoque" placeholder="Qtd" class="campo-estoque" min="0" />
+          <input type="date" id="validade" />
+          <input type="file" id="imagemManual" accept="image/*" />
+        </div>
+        <div class="flex">
+          <button class="btn-ia" onclick="buscarProdutoOnline()">Cadastro Inteligente IA</button>
+          <button class="btn-manual" onclick="adicionarProduto()">Adicionar Manual</button>
+          <button class="btn-camera" onclick="abrirCamera()">Escanear Código</button>
+        </div>
+        <div id="reader"></div>
+      </div>
+
+      <div class="card">
+        <div class="filtro-box">
+          <h2>Filtro por Categoria</h2>
+          <div class="flex">
+            <select id="filtroCategoria" onchange="filtrarCategoria()">
+              <option value="todos">Todas categorias</option>
+              <option value="alimenticio">Alimentício</option>
+              <option value="bebidas">Bebidas</option>
+              <option value="resfriados">Resfriados</option>
+              <option value="higiene">Higiene</option>
+              <option value="limpeza">Limpeza</option>
+              <option value="bazar">Bazar</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex">
+          <button class="btn-validade" onclick="ordenarPorValidade()">Ordenar por validade</button>
+          <button class="btn-atualizar" onclick="atualizarSistema()">Atualizar sistema</button>
+        </div>
+
+        <div class="flex">
+          <input
+            type="text"
+            id="buscaRapida"
+            placeholder="Buscar por nome, código ou marca"
+            onkeyup="atualizarTabela()"
+          />
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Imagem</th>
+              <th>Código</th>
+              <th class="coluna-produto">Produto</th>
+              <th>Marca</th>
+              <th>Categoria</th>
+              <th class="coluna-custo">Custo</th>
+              <th>% Lucro</th>
+              <th class="coluna-preco">Preço</th>
+              <th class="coluna-estoque">Qtd</th>
+              <th>Validade</th>
+              <th>X</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaProdutos"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const SUPABASE_URL = "https://numvxurdooalgvudbzmd.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51bXZ4dXJkb29hbGd2dWRiem1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MDM3OTcsImV4cCI6MjA5NjA3OTc5N30.T9LpluDVO1EyJ5HaM1pgIZ2uYtxStYoZtNifLJWqtow";
+      const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      let produtos = [];
+      let filtroAtual = "todos";
+      let cameraAtiva = false;
+      let ultimaLeitura = "";
+      let usuarioAtual = null;
+
+      const categorias = ["alimenticio", "bebidas", "resfriados", "higiene", "limpeza", "bazar"];
+
+      let bancoProdutos = JSON.parse(localStorage.getItem("bancoProdutos")) || {
+        7896098900239: {
+          nome: "Detergente Líquido Ypê Neutro 500ml",
+          marca: "Ypê",
+          categoria: "limpeza",
+        },
+        7896098900215: {
+          nome: "Detergente Líquido Ypê Clear 500ml",
+          marca: "Ypê",
+          categoria: "limpeza",
+        },
+        7891150067011: {
+          nome: "Coca-Cola Original 2L",
+          marca: "Coca-Cola",
+          categoria: "bebidas",
+        },
+      };
+
+      function normalizarProduto(produto) {
+        return {
+          ...produto,
+          codigoBarras: produto.codigoBarras ?? produto.codigo_barras ?? "",
+        };
+      }
+
+      function escaparHtml(valor) {
+        return String(valor ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      function escaparJs(valor) {
+        return String(valor ?? "").replaceAll("\\", "\\\\").replaceAll("'", "\\'");
+      }
+
+      function numero(valor) {
+        return Number.parseFloat(valor || 0) || 0;
+      }
+
+      function inteiro(valor) {
+        return Number.parseInt(valor || 0, 10) || 0;
+      }
+
+      function valorTimestamp(validade) {
+        if (!validade) return Infinity;
+        const timestamp = new Date(validade).getTime();
+        return Number.isNaN(timestamp) ? Infinity : timestamp;
+      }
+
+      function diasParaVencer(validade) {
+        const timestamp = valorTimestamp(validade);
+        if (!Number.isFinite(timestamp)) return Infinity;
+        const hoje = new Date();
+        return Math.ceil((timestamp - hoje) / (1000 * 60 * 60 * 24));
+      }
+
+      function calcularLucro(custo, preco) {
+        const custoNumero = numero(custo);
+        const precoNumero = numero(preco);
+        if (custoNumero <= 0) return "0.0";
+        return (((precoNumero - custoNumero) / custoNumero) * 100).toFixed(1);
+      }
+
+      function salvarProdutoNoBancoLocal(produto) {
+        if (!produto.codigoBarras) return;
+
+        bancoProdutos[produto.codigoBarras] = {
+          nome: produto.nome || "",
+          marca: produto.marca || "",
+          categoria: produto.categoria || "alimenticio",
+        };
+
+        localStorage.setItem("bancoProdutos", JSON.stringify(bancoProdutos));
+      }
+
+      function converterImagemBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function filtrarCategoria() {
+        filtroAtual = document.getElementById("filtroCategoria").value;
+        atualizarTabela();
+      }
+
+      function ordenarPorValidade() {
+        produtos.sort((a, b) => valorTimestamp(a.validade) - valorTimestamp(b.validade));
+        atualizarTabela();
+      }
+
+      async function atualizarSistema() {
+        await carregarProdutosSupabase();
+      }
+
+      function limparCampos() {
+        document.getElementById("codigoBarras").value = "";
+        document.getElementById("nome").value = "";
+        document.getElementById("marcaCadastro").value = "";
+        document.getElementById("custo").value = "";
+        document.getElementById("preco").value = "";
+        document.getElementById("estoque").value = "";
+        document.getElementById("validade").value = "";
+        document.getElementById("imagemManual").value = "";
+      }
+
+      async function abrirCamera() {
+        if (cameraAtiva) return;
+
+        cameraAtiva = true;
+        const reader = document.getElementById("reader");
+        reader.innerHTML = "";
+
+        try {
+          const html5QrCode = new Html5Qrcode("reader");
+          await html5QrCode.start(
+            { facingMode: { ideal: "environment" } },
+            {
+              fps: 15,
+              qrbox: { width: 280, height: 180 },
+              aspectRatio: 1.7,
+              disableFlip: false,
+            },
+            (decodedText) => {
+              if (decodedText === ultimaLeitura) return;
+
+              ultimaLeitura = decodedText;
+              navigator.vibrate?.(200);
+              document.getElementById("codigoBarras").value = decodedText;
+
+              setTimeout(async () => {
+                await html5QrCode.stop();
+                cameraAtiva = false;
+                buscarProdutoOnline();
+              }, 1200);
+            },
+            () => {},
+          );
+        } catch (erro) {
+          console.error(erro);
+          cameraAtiva = false;
+          alert("Erro ao acessar câmera");
+        }
+      }
+
+      async function buscarProdutoOnline() {
+        const codigo = document.getElementById("codigoBarras").value.trim();
+
+        if (!codigo) {
+          alert("Digite o código");
+          return;
+        }
+
+        if (bancoProdutos[codigo]) {
+          const produto = bancoProdutos[codigo];
+          document.getElementById("nome").value = produto.nome;
+          document.getElementById("marcaCadastro").value = produto.marca || "";
+          document.getElementById("categoriaCadastro").value = produto.categoria;
+          document.getElementById("estoque").value = 1;
+          return;
+        }
+
+        let nome = "";
+        let marca = "";
+        let imagem = "";
+
+        try {
+          const resposta = await fetch(`https://world.openfoodfacts.org/api/v0/product/${codigo}.json`);
+          const dados = await resposta.json();
+
+          if (dados.status === 1) {
+            nome = dados.product.product_name || "";
+            marca = dados.product.brands || "";
+            imagem = dados.product.image_url || "";
+          }
+        } catch (erro) {
+          console.error(erro);
+        }
+
+        if (!nome) {
+          alert("Produto não encontrado.\n\nPreencha os dados manualmente.");
+          return;
+        }
+
+        document.getElementById("nome").value = nome;
+        document.getElementById("marcaCadastro").value = marca;
+        document.getElementById("estoque").value = 1;
+        document.getElementById("custo").value ||= 0;
+        document.getElementById("preco").value ||= 0;
+
+        if (!document.getElementById("validade").value) {
+          const hoje = new Date();
+          hoje.setMonth(hoje.getMonth() + 6);
+          document.getElementById("validade").value = hoje.toISOString().split("T")[0];
+        }
+
+        await adicionarProduto(imagem, marca);
+      }
+
+      async function adicionarProduto(imagem = "", marca = "") {
+        const nome = document.getElementById("nome").value.trim();
+        const marcaFinal = marca || document.getElementById("marcaCadastro").value.trim();
+
+        if (!nome) {
+          alert("Digite o nome");
+          return;
+        }
+
+        const arquivo = document.getElementById("imagemManual").files[0];
+        const imagemFinal = arquivo ? await converterImagemBase64(arquivo) : imagem;
+        const codigoBarras = document.getElementById("codigoBarras").value.trim();
+
+        const produtoExistente = produtos.find(
+          (item) => codigoBarras && String(item.codigoBarras) === String(codigoBarras),
+        );
+
+        if (produtoExistente && !confirm("Já existe um produto com este código. Deseja cadastrar outro mesmo assim?")) {
+          return;
+        }
+
+        const produto = {
+          codigoBarras,
+          nome,
+          marca: marcaFinal,
+          categoria: document.getElementById("categoriaCadastro").value,
+          custo: numero(document.getElementById("custo").value),
+          preco: numero(document.getElementById("preco").value),
+          estoque: inteiro(document.getElementById("estoque").value),
+          validade: document.getElementById("validade").value || null,
+          imagem: imagemFinal,
+        };
+
+        if (produto.codigoBarras) {
+          salvarProdutoNoBancoLocal(produto);
+        }
+
+        const { error } = await supabaseClient.from("produtos").insert([
+          {
+            codigo_barras: produto.codigoBarras,
+            nome: produto.nome,
+            marca: produto.marca,
+            categoria: produto.categoria,
+            custo: produto.custo,
+            preco: produto.preco,
+            estoque: produto.estoque,
+            validade: produto.validade,
+            imagem: produto.imagem,
+          },
+        ]);
+
+        if (error) {
+          console.error(error);
+          alert("Erro ao salvar produto: " + error.message);
+          return;
+        }
+
+        await carregarProdutosSupabase();
+        limparCampos();
+        alert("Produto cadastrado com sucesso!");
+      }
+
+      async function removerProduto(id) {
+        if (!confirm("Deseja realmente excluir este produto?")) return;
+
+        const { error } = await supabaseClient.from("produtos").delete().eq("id", id);
+
+        if (error) {
+          alert("Erro ao excluir: " + error.message);
+          return;
+        }
+
+        await carregarProdutosSupabase();
+        alert("Produto excluído com sucesso!");
+      }
+
+      async function atualizarCampo(id, campo, valor) {
+        const mapaCampos = {
+          codigoBarras: "codigo_barras",
+          nome: "nome",
+          marca: "marca",
+          categoria: "categoria",
+          custo: "custo",
+          preco: "preco",
+          estoque: "estoque",
+          validade: "validade",
+          imagem: "imagem",
+        };
+
+        const colunaSupabase = mapaCampos[campo];
+        if (!colunaSupabase) {
+          console.error("Campo não mapeado:", campo);
+          return;
+        }
+
+        let valorFinal = valor;
+        if (campo === "custo" || campo === "preco") valorFinal = numero(valor);
+        if (campo === "estoque") valorFinal = inteiro(valor);
+        if (campo === "validade") valorFinal = valor || null;
+
+        const { error } = await supabaseClient
+          .from("produtos")
+          .update({ [colunaSupabase]: valorFinal })
+          .eq("id", id);
+
+        if (error) {
+          alert("Erro ao atualizar: " + error.message);
+          await carregarProdutosSupabase();
+          return;
+        }
+
+        const produto = produtos.find((item) => String(item.id) === String(id));
+
+        if (produto) {
+          if (campo === "codigoBarras" && produto.codigoBarras && produto.codigoBarras !== valorFinal) {
+            delete bancoProdutos[produto.codigoBarras];
+          }
+
+          produto[campo] = valorFinal;
+
+          if (["codigoBarras", "nome", "marca", "categoria"].includes(campo)) {
+            salvarProdutoNoBancoLocal(produto);
+          }
+        }
+
+        atualizarTabela();
+      }
+
+      async function trocarImagem(event, id) {
+        const arquivo = event.target.files[0];
+        if (!arquivo) return;
+
+        const base64 = await converterImagemBase64(arquivo);
+        const { error } = await supabaseClient.from("produtos").update({ imagem: base64 }).eq("id", id);
+
+        if (error) {
+          alert("Erro ao atualizar imagem: " + error.message);
+          return;
+        }
+
+        const produto = produtos.find((item) => String(item.id) === String(id));
+        if (produto) produto.imagem = base64;
+        atualizarTabela();
+      }
+
+      function atualizarTabela() {
+        const tabela = document.getElementById("tabelaProdutos");
+        const busca = document.getElementById("buscaRapida")?.value?.toLowerCase() || "";
+
+        const produtosFiltrados = produtos.filter((produto) => {
+          const categoriaOk = filtroAtual === "todos" || produto.categoria === filtroAtual;
+          const buscaOk =
+            (produto.nome || "").toLowerCase().includes(busca) ||
+            (produto.marca || "").toLowerCase().includes(busca) ||
+            (produto.codigoBarras || "").toString().includes(busca);
+
+          return categoriaOk && buscaOk;
+        });
+
+        tabela.innerHTML = produtosFiltrados
+          .map((produto) => {
+            const dias = diasParaVencer(produto.validade);
+            const lucro = calcularLucro(produto.custo, produto.preco);
+            const idProduto = escaparJs(produto.id);
+            const imagem = produto.imagem
+              ? `<img src="${escaparHtml(produto.imagem)}" alt="${escaparHtml(produto.nome)}">`
+              : `<div class="sem-imagem">Sem imagem</div>`;
+
+            return `
+              <tr class="${dias <= 30 ? "vencendo" : ""}">
+                <td>
+                  <div class="imagem-acoes">
+                    ${imagem}
+                    <label class="label-camera">
+                      Foto
+                      <input class="input-camera" type="file" accept="image/*" onchange="trocarImagem(event,'${idProduto}')">
+                    </label>
+                  </div>
+                </td>
+                <td>
+                  <input class="tabela-input" value="${escaparHtml(produto.codigoBarras)}" onchange="atualizarCampo('${idProduto}','codigoBarras',this.value)">
+                </td>
+                <td>
+                  <input class="tabela-input coluna-produto" value="${escaparHtml(produto.nome)}" onchange="atualizarCampo('${idProduto}','nome',this.value)">
+                </td>
+                <td>
+                  <input class="tabela-input" value="${escaparHtml(produto.marca)}" onchange="atualizarCampo('${idProduto}','marca',this.value)">
+                </td>
+                <td>
+                  <select class="tabela-select" onchange="atualizarCampo('${idProduto}','categoria',this.value)">
+                    ${categorias
+                      .map(
+                        (cat) =>
+                          `<option value="${cat}" ${produto.categoria === cat ? "selected" : ""}>${cat}</option>`,
+                      )
+                      .join("")}
+                  </select>
+                </td>
+                <td>
+                  <input class="tabela-input coluna-custo" type="number" step="0.01" value="${escaparHtml(produto.custo || 0)}" onchange="atualizarCampo('${idProduto}','custo',this.value)">
+                </td>
+                <td class="${Number(lucro) >= 30 ? "lucro-positivo" : "lucro-baixo"}">${lucro}%</td>
+                <td>
+                  <input class="tabela-input coluna-preco" type="number" step="0.01" value="${escaparHtml(produto.preco || 0)}" onchange="atualizarCampo('${idProduto}','preco',this.value)">
+                </td>
+                <td>
+                  <input class="tabela-input coluna-estoque" type="number" value="${escaparHtml(produto.estoque || 0)}" onchange="atualizarCampo('${idProduto}','estoque',this.value)">
+                </td>
+                <td>
+                  <input class="tabela-input" type="date" value="${escaparHtml(produto.validade || "")}" onchange="atualizarCampo('${idProduto}','validade',this.value)">
+                </td>
+                <td>
+                  <button class="btn-excluir" onclick="removerProduto('${idProduto}')">X</button>
+                </td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      async function carregarProdutosSupabase() {
+        const { data, error } = await supabaseClient
+          .from("produtos")
+          .select("*")
+          .order("validade", { ascending: true, nullsFirst: false });
+
+        if (error) {
+          console.error(error);
+          alert("Erro ao carregar produtos: " + error.message);
+          return;
+        }
+
+        produtos = (data || []).map(normalizarProduto);
+        atualizarTabela();
+      }
+
+      async function registrar() {
+        const email = document.getElementById("email").value.trim();
+        const senha = document.getElementById("senha").value;
+
+        if (!email || !senha) {
+          alert("Preencha e-mail e senha.");
+          return;
+        }
+
+        const { error } = await supabaseClient.auth.signUp({ email, password: senha });
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        alert("Conta criada. Verifique seu e-mail.");
+      }
+
+      async function login() {
+        const email = document.getElementById("email").value.trim();
+        const senha = document.getElementById("senha").value;
+
+        if (!email || !senha) {
+          alert("Preencha e-mail e senha.");
+          return;
+        }
+
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: senha });
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        usuarioAtual = data.user;
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("erpContainer").style.display = "block";
+        await carregarProdutosSupabase();
+      }
+
+      async function restaurarSessao() {
+        const { data } = await supabaseClient.auth.getSession();
+        if (!data.session) return;
+
+        usuarioAtual = data.session.user;
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("erpContainer").style.display = "block";
+        await carregarProdutosSupabase();
+      }
+
+      atualizarTabela();
+      restaurarSessao();
+
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("./service-worker.js").catch((err) => {
+            console.error("Erro PWA", err);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
