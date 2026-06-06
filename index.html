@@ -171,6 +171,22 @@
         background: white;
       }
 
+      .resumo-validades {
+        margin-top: 10px;
+        overflow-x: auto;
+      }
+
+      .resumo-validades table {
+        margin-top: 10px;
+      }
+
+      .resumo-validades caption {
+        padding: 8px 0;
+        color: #374151;
+        font-weight: bold;
+        text-align: left;
+      }
+
       th {
         background: #f3f4f6;
         font-size: 14px;
@@ -363,6 +379,8 @@
             onkeyup="atualizarTabela()"
           />
         </div>
+
+        <div id="resumoValidades"></div>
 
         <table>
           <thead>
@@ -732,6 +750,18 @@
         };
       }
 
+      function chaveLote(codigoBarras, validade) {
+        return `${codigoBarras || "sem-codigo"}|${validade || "sem-validade"}`;
+      }
+
+      function mesmoLote(produto, codigoBarras, validade) {
+        return (
+          codigoBarras &&
+          String(produto.codigoBarras || "") === String(codigoBarras) &&
+          String(produto.validade || "") === String(validade || "")
+        );
+      }
+
       async function buscarJson(url) {
         const resposta = await fetch(url, {
           headers: {
@@ -830,12 +860,6 @@
         document.getElementById("estoque").value = document.getElementById("estoque").value || 1;
         document.getElementById("custo").value ||= 0;
         document.getElementById("preco").value ||= 0;
-
-        if (!document.getElementById("validade").value) {
-          const hoje = new Date();
-          hoje.setMonth(hoje.getMonth() + 6);
-          document.getElementById("validade").value = hoje.toISOString().split("T")[0];
-        }
       }
 
       function converterImagemBase64(file) {
@@ -978,7 +1002,7 @@
 
         if (produtoJaCadastrado) {
           preencherProdutoEncontrado(produtoJaCadastrado);
-          alert("Este produto já está cadastrado. Atualize a quantidade na tabela de produtos.");
+          await adicionarProduto(produtoJaCadastrado.imagem, produtoJaCadastrado.marca);
           return;
         }
 
@@ -1021,47 +1045,20 @@
         const arquivo = document.getElementById("imagemManual").files[0];
         const imagemFinal = arquivo ? await converterImagemBase64(arquivo) : imagem;
         const codigoBarras = document.getElementById("codigoBarras").value.trim();
+        const validadeProduto = document.getElementById("validade").value || null;
+        const chaveLoteAtual = chaveLote(codigoBarras, validadeProduto);
 
-        if (cadastroEmAndamento || (codigoBarras && codigosEmCadastro.has(codigoBarras))) {
+        if (!validadeProduto) {
+          alert("Informe a validade do lote antes de cadastrar.");
           return;
         }
 
-        const produtoExistente = produtos.find(
-          (item) => codigoBarras && String(item.codigoBarras) === String(codigoBarras),
-        );
-
-        if (produtoExistente) {
-          alert("Este código já está cadastrado. Atualize a quantidade na tabela de produtos.");
+        if (cadastroEmAndamento || codigosEmCadastro.has(chaveLoteAtual)) {
           return;
         }
 
         cadastroEmAndamento = true;
-        if (codigoBarras) {
-          codigosEmCadastro.add(codigoBarras);
-        }
-
-        if (codigoBarras) {
-          const { data: produtosDuplicados, error: erroDuplicidade } = await supabaseClient
-            .from("produtos")
-            .select("id")
-            .eq("codigo_barras", codigoBarras)
-            .limit(1);
-
-          if (erroDuplicidade) {
-            cadastroEmAndamento = false;
-            codigosEmCadastro.delete(codigoBarras);
-            alert("Erro ao verificar duplicidade: " + erroDuplicidade.message);
-            return;
-          }
-
-          if (produtosDuplicados?.length) {
-            cadastroEmAndamento = false;
-            codigosEmCadastro.delete(codigoBarras);
-            await carregarProdutosSupabase();
-            alert("Este código já está cadastrado. Atualize a quantidade na tabela de produtos.");
-            return;
-          }
-        }
+        codigosEmCadastro.add(chaveLoteAtual);
 
         const produto = {
           codigoBarras,
@@ -1071,12 +1068,80 @@
           custo: numero(document.getElementById("custo").value),
           preco: numero(document.getElementById("preco").value),
           estoque: inteiro(document.getElementById("estoque").value),
-          validade: document.getElementById("validade").value || null,
+          validade: validadeProduto,
           imagem: imagemFinal,
         };
 
         if (produto.codigoBarras) {
           salvarProdutoNoBancoLocal(produto);
+        }
+
+        const loteExistenteLocal = produtos.find((item) => mesmoLote(item, produto.codigoBarras, produto.validade));
+
+        if (loteExistenteLocal) {
+          const estoqueAtualizado = inteiro(loteExistenteLocal.estoque) + inteiro(produto.estoque);
+          const { error: erroAtualizacaoLote } = await supabaseClient
+            .from("produtos")
+            .update({
+              estoque: estoqueAtualizado,
+            })
+            .eq("id", loteExistenteLocal.id);
+
+          cadastroEmAndamento = false;
+          codigosEmCadastro.delete(chaveLoteAtual);
+
+          if (erroAtualizacaoLote) {
+            alert("Erro ao somar estoque do lote: " + erroAtualizacaoLote.message);
+            return;
+          }
+
+          await carregarProdutosSupabase();
+          limparCampos();
+          alert("Lote já existia. A quantidade foi somada ao estoque desse vencimento.");
+          return;
+        }
+
+        if (produto.codigoBarras) {
+          let consultaLote = supabaseClient
+            .from("produtos")
+            .select("id, estoque")
+            .eq("codigo_barras", produto.codigoBarras)
+            .limit(1);
+
+          consultaLote = produto.validade ? consultaLote.eq("validade", produto.validade) : consultaLote.is("validade", null);
+
+          const { data: lotesDuplicados, error: erroConsultaLote } = await consultaLote;
+
+          if (erroConsultaLote) {
+            cadastroEmAndamento = false;
+            codigosEmCadastro.delete(chaveLoteAtual);
+            alert("Erro ao verificar lote existente: " + erroConsultaLote.message);
+            return;
+          }
+
+          if (lotesDuplicados?.length) {
+            const lote = lotesDuplicados[0];
+            const estoqueAtualizado = inteiro(lote.estoque) + inteiro(produto.estoque);
+            const { error: erroSomaSupabase } = await supabaseClient
+              .from("produtos")
+              .update({
+                estoque: estoqueAtualizado,
+              })
+              .eq("id", lote.id);
+
+            cadastroEmAndamento = false;
+            codigosEmCadastro.delete(chaveLoteAtual);
+
+            if (erroSomaSupabase) {
+              alert("Erro ao somar estoque do lote: " + erroSomaSupabase.message);
+              return;
+            }
+
+            await carregarProdutosSupabase();
+            limparCampos();
+            alert("Lote já existia. A quantidade foi somada ao estoque desse vencimento.");
+            return;
+          }
         }
 
         const { error } = await supabaseClient.from("produtos").insert([
@@ -1094,9 +1159,7 @@
         ]);
 
         cadastroEmAndamento = false;
-        if (codigoBarras) {
-          codigosEmCadastro.delete(codigoBarras);
-        }
+        codigosEmCadastro.delete(chaveLoteAtual);
 
         if (error) {
           console.error(error);
@@ -1192,6 +1255,70 @@
         atualizarTabela();
       }
 
+      function atualizarResumoValidades(produtosFiltrados) {
+        const resumo = document.getElementById("resumoValidades");
+
+        if (!resumo) return;
+
+        const grupos = new Map();
+
+        produtosFiltrados.forEach((produto) => {
+          const chave = produto.codigoBarras || produto.nome || produto.id;
+          const grupo = grupos.get(chave) || {
+            nome: produto.nome || "",
+            codigoBarras: produto.codigoBarras || "",
+            estoqueTotal: 0,
+            lotes: 0,
+            proximaValidade: "",
+          };
+
+          grupo.estoqueTotal += inteiro(produto.estoque);
+          grupo.lotes += 1;
+
+          if (
+            produto.validade &&
+            (!grupo.proximaValidade || valorTimestamp(produto.validade) < valorTimestamp(grupo.proximaValidade))
+          ) {
+            grupo.proximaValidade = produto.validade;
+          }
+
+          grupos.set(chave, grupo);
+        });
+
+        const linhas = [...grupos.values()]
+          .sort((a, b) => valorTimestamp(a.proximaValidade) - valorTimestamp(b.proximaValidade))
+          .map(
+            (grupo) => `
+              <tr>
+                <td>${escaparHtml(grupo.nome)}</td>
+                <td>${escaparHtml(grupo.codigoBarras)}</td>
+                <td>${grupo.estoqueTotal}</td>
+                <td>${grupo.lotes}</td>
+                <td>${escaparHtml(grupo.proximaValidade || "Sem validade")}</td>
+              </tr>
+            `,
+          )
+          .join("");
+
+        resumo.innerHTML = `
+          <div class="resumo-validades">
+            <table>
+              <caption>Resumo por produto</caption>
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Código</th>
+                  <th>Total</th>
+                  <th>Lotes</th>
+                  <th>Próxima validade</th>
+                </tr>
+              </thead>
+              <tbody>${linhas}</tbody>
+            </table>
+          </div>
+        `;
+      }
+
       function atualizarTabela() {
         const tabela = document.getElementById("tabelaProdutos");
         const busca = document.getElementById("buscaRapida")?.value?.toLowerCase() || "";
@@ -1205,6 +1332,8 @@
 
           return categoriaOk && buscaOk;
         });
+
+        atualizarResumoValidades(produtosFiltrados);
 
         tabela.innerHTML = produtosFiltrados
           .map((produto) => {

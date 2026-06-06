@@ -1,4 +1,4 @@
-const CACHE_NAME = "erp-fazenda-v10";
+const CACHE_NAME = "erp-fazenda-v11";
 
 const urlsToCache = [
   "./",
