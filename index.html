@@ -171,22 +171,6 @@
         background: white;
       }
 
-      .resumo-validades {
-        margin-top: 10px;
-        overflow-x: auto;
-      }
-
-      .resumo-validades table {
-        margin-top: 10px;
-      }
-
-      .resumo-validades caption {
-        padding: 8px 0;
-        color: #374151;
-        font-weight: bold;
-        text-align: left;
-      }
-
       th {
         background: #f3f4f6;
         font-size: 14px;
@@ -366,6 +350,19 @@
           </div>
         </div>
 
+        <div class="filtro-box">
+          <h2>Filtro por Validade</h2>
+          <div class="flex">
+            <select id="filtroValidade" onchange="filtrarValidade()">
+              <option value="todos">Todos os produtos</option>
+              <option value="vencidos">Produtos vencidos</option>
+              <option value="7dias">Vencem em até 7 dias</option>
+              <option value="30dias">Vencem em até 30 dias</option>
+              <option value="sem-validade">Sem validade</option>
+            </select>
+          </div>
+        </div>
+
         <div class="flex">
           <button class="btn-validade" onclick="ordenarPorValidade()">Ordenar por validade</button>
           <button class="btn-atualizar" onclick="atualizarSistema()">Atualizar sistema</button>
@@ -379,8 +376,6 @@
             onkeyup="atualizarTabela()"
           />
         </div>
-
-        <div id="resumoValidades"></div>
 
         <table>
           <thead>
@@ -411,6 +406,7 @@
 
       let produtos = [];
       let filtroAtual = "todos";
+      let filtroValidadeAtual = "todos";
       let cameraAtiva = false;
       let leitorCamera = null;
       let ultimaLeitura = "";
@@ -876,6 +872,22 @@
         atualizarTabela();
       }
 
+      function filtrarValidade() {
+        filtroValidadeAtual = document.getElementById("filtroValidade").value;
+        atualizarTabela();
+      }
+
+      function produtoPassaFiltroValidade(produto) {
+        const dias = diasParaVencer(produto.validade);
+
+        if (filtroValidadeAtual === "vencidos") return Number.isFinite(dias) && dias < 0;
+        if (filtroValidadeAtual === "7dias") return Number.isFinite(dias) && dias >= 0 && dias <= 7;
+        if (filtroValidadeAtual === "30dias") return Number.isFinite(dias) && dias >= 0 && dias <= 30;
+        if (filtroValidadeAtual === "sem-validade") return !produto.validade;
+
+        return true;
+      }
+
       function ordenarPorValidade() {
         produtos.sort((a, b) => valorTimestamp(a.validade) - valorTimestamp(b.validade));
         atualizarTabela();
@@ -1255,85 +1267,20 @@
         atualizarTabela();
       }
 
-      function atualizarResumoValidades(produtosFiltrados) {
-        const resumo = document.getElementById("resumoValidades");
-
-        if (!resumo) return;
-
-        const grupos = new Map();
-
-        produtosFiltrados.forEach((produto) => {
-          const chave = produto.codigoBarras || produto.nome || produto.id;
-          const grupo = grupos.get(chave) || {
-            nome: produto.nome || "",
-            codigoBarras: produto.codigoBarras || "",
-            estoqueTotal: 0,
-            lotes: 0,
-            proximaValidade: "",
-          };
-
-          grupo.estoqueTotal += inteiro(produto.estoque);
-          grupo.lotes += 1;
-
-          if (
-            produto.validade &&
-            (!grupo.proximaValidade || valorTimestamp(produto.validade) < valorTimestamp(grupo.proximaValidade))
-          ) {
-            grupo.proximaValidade = produto.validade;
-          }
-
-          grupos.set(chave, grupo);
-        });
-
-        const linhas = [...grupos.values()]
-          .sort((a, b) => valorTimestamp(a.proximaValidade) - valorTimestamp(b.proximaValidade))
-          .map(
-            (grupo) => `
-              <tr>
-                <td>${escaparHtml(grupo.nome)}</td>
-                <td>${escaparHtml(grupo.codigoBarras)}</td>
-                <td>${grupo.estoqueTotal}</td>
-                <td>${grupo.lotes}</td>
-                <td>${escaparHtml(grupo.proximaValidade || "Sem validade")}</td>
-              </tr>
-            `,
-          )
-          .join("");
-
-        resumo.innerHTML = `
-          <div class="resumo-validades">
-            <table>
-              <caption>Resumo por produto</caption>
-              <thead>
-                <tr>
-                  <th>Produto</th>
-                  <th>Código</th>
-                  <th>Total</th>
-                  <th>Lotes</th>
-                  <th>Próxima validade</th>
-                </tr>
-              </thead>
-              <tbody>${linhas}</tbody>
-            </table>
-          </div>
-        `;
-      }
-
       function atualizarTabela() {
         const tabela = document.getElementById("tabelaProdutos");
         const busca = document.getElementById("buscaRapida")?.value?.toLowerCase() || "";
 
         const produtosFiltrados = produtos.filter((produto) => {
           const categoriaOk = filtroAtual === "todos" || produto.categoria === filtroAtual;
+          const validadeOk = produtoPassaFiltroValidade(produto);
           const buscaOk =
             (produto.nome || "").toLowerCase().includes(busca) ||
             (produto.marca || "").toLowerCase().includes(busca) ||
             (produto.codigoBarras || "").toString().includes(busca);
 
-          return categoriaOk && buscaOk;
+          return categoriaOk && validadeOk && buscaOk;
         });
-
-        atualizarResumoValidades(produtosFiltrados);
 
         tabela.innerHTML = produtosFiltrados
           .map((produto) => {
