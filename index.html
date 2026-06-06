@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -309,11 +309,11 @@
       <div class="card">
         <h2>Cadastro Inteligente</h2>
         <div class="flex">
-          <input type="text" id="codigoBarras" placeholder="Código de barras" />
+          <input type="text" id="codigoBarras" placeholder="CÃ³digo de barras" />
           <input type="text" id="nome" placeholder="Nome produto" class="campo-produto" />
           <input type="text" id="marcaCadastro" placeholder="Marca" />
           <select id="categoriaCadastro">
-            <option value="alimenticio">Alimentício</option>
+            <option value="alimenticio">AlimentÃ­cio</option>
             <option value="bebidas">Bebidas</option>
             <option value="resfriados">Resfriados</option>
             <option value="higiene">Higiene</option>
@@ -321,7 +321,7 @@
             <option value="bazar">Bazar</option>
           </select>
           <input type="number" id="custo" placeholder="Custo" class="campo-custo" step="0.01" />
-          <input type="number" id="preco" placeholder="Preço venda" class="campo-preco" step="0.01" />
+          <input type="number" id="preco" placeholder="PreÃ§o venda" class="campo-preco" step="0.01" />
           <input type="number" id="estoque" placeholder="Qtd" class="campo-estoque" min="0" />
           <input type="date" id="validade" />
           <input type="file" id="imagemManual" accept="image/*" />
@@ -329,7 +329,7 @@
         <div class="flex">
           <button class="btn-ia" onclick="buscarProdutoOnline()">Cadastro Inteligente IA</button>
           <button class="btn-manual" onclick="adicionarProduto()">Adicionar Manual</button>
-          <button class="btn-camera" onclick="abrirCamera()">Escanear Código</button>
+          <button class="btn-camera" onclick="abrirCamera()">Escanear CÃ³digo</button>
         </div>
         <div id="reader"></div>
       </div>
@@ -340,7 +340,7 @@
           <div class="flex">
             <select id="filtroCategoria" onchange="filtrarCategoria()">
               <option value="todos">Todas categorias</option>
-              <option value="alimenticio">Alimentício</option>
+              <option value="alimenticio">AlimentÃ­cio</option>
               <option value="bebidas">Bebidas</option>
               <option value="resfriados">Resfriados</option>
               <option value="higiene">Higiene</option>
@@ -359,7 +359,7 @@
           <input
             type="text"
             id="buscaRapida"
-            placeholder="Buscar por nome, código ou marca"
+            placeholder="Buscar por nome, cÃ³digo ou marca"
             onkeyup="atualizarTabela()"
           />
         </div>
@@ -368,13 +368,13 @@
           <thead>
             <tr>
               <th>Imagem</th>
-              <th>Código</th>
+              <th>CÃ³digo</th>
               <th class="coluna-produto">Produto</th>
               <th>Marca</th>
               <th>Categoria</th>
               <th class="coluna-custo">Custo</th>
               <th>% Lucro</th>
-              <th class="coluna-preco">Preço</th>
+              <th class="coluna-preco">PreÃ§o</th>
               <th class="coluna-estoque">Qtd</th>
               <th>Validade</th>
               <th>X</th>
@@ -396,6 +396,9 @@
       let cameraAtiva = false;
       let leitorCamera = null;
       let ultimaLeitura = "";
+      let leituraCameraEmProcessamento = false;
+      let cadastroEmAndamento = false;
+      const codigosEmCadastro = new Set();
       let usuarioAtual = null;
 
       const categorias = ["alimenticio", "bebidas", "resfriados", "higiene", "limpeza", "bazar"];
@@ -404,7 +407,7 @@
         try {
           return JSON.parse(localStorage.getItem("bancoProdutos")) || {};
         } catch (erro) {
-          console.warn("Banco local de produtos inválido. Recriando cache.", erro);
+          console.warn("Banco local de produtos invÃ¡lido. Recriando cache.", erro);
           localStorage.removeItem("bancoProdutos");
           return {};
         }
@@ -412,13 +415,13 @@
 
       const bancoProdutosPadrao = {
         7896098900239: {
-          nome: "Detergente Líquido Ypê Neutro 500ml",
-          marca: "Ypê",
+          nome: "Detergente LÃ­quido YpÃª Neutro 500ml",
+          marca: "YpÃª",
           categoria: "limpeza",
         },
         7896098900215: {
-          nome: "Detergente Líquido Ypê Clear 500ml",
-          marca: "Ypê",
+          nome: "Detergente LÃ­quido YpÃª Clear 500ml",
+          marca: "YpÃª",
           categoria: "limpeza",
         },
         7891150067011: {
@@ -427,7 +430,7 @@
           categoria: "bebidas",
         },
         7891035024399: {
-          nome: "Detergente para Lava-Louças em Pó Finish Power Powder Advanced 450g",
+          nome: "Detergente para Lava-LouÃ§as em PÃ³ Finish Power Powder Advanced 450g",
           marca: "Finish",
           categoria: "limpeza",
         },
@@ -502,11 +505,11 @@
         const conteudo = String(texto || "").toLowerCase();
 
         const regras = [
-          { categoria: "bebidas", termos: ["bebida", "refrigerante", "suco", "agua", "água", "cerveja", "vinho"] },
-          { categoria: "limpeza", termos: ["detergente", "lava", "louça", "loucas", "limpeza", "desinfetante", "sabão", "saboneteira"] },
+          { categoria: "bebidas", termos: ["bebida", "refrigerante", "suco", "agua", "Ã¡gua", "cerveja", "vinho"] },
+          { categoria: "limpeza", termos: ["detergente", "lava", "louÃ§a", "loucas", "limpeza", "desinfetante", "sabÃ£o", "saboneteira"] },
           { categoria: "higiene", termos: ["higiene", "sabonete", "shampoo", "condicionador", "creme dental", "desodorante"] },
           { categoria: "resfriados", termos: ["iogurte", "queijo", "manteiga", "refrigerado", "resfriado", "frios"] },
-          { categoria: "bazar", termos: ["bazar", "utilidade", "utensílio", "utensilio", "plástico", "plastico"] },
+          { categoria: "bazar", termos: ["bazar", "utilidade", "utensÃ­lio", "utensilio", "plÃ¡stico", "plastico"] },
         ];
 
         const regra = regras.find((item) => item.termos.some((termo) => conteudo.includes(termo)));
@@ -676,15 +679,15 @@
 
         cameraAtiva = true;
         const reader = document.getElementById("reader");
-        reader.innerHTML = "<p style='padding:12px;color:#4b5563;'>Abrindo câmera...</p>";
+        reader.innerHTML = "<p style='padding:12px;color:#4b5563;'>Abrindo cÃ¢mera...</p>";
 
         try {
           if (!window.isSecureContext) {
-            throw new Error("A câmera só funciona em HTTPS ou localhost.");
+            throw new Error("A cÃ¢mera sÃ³ funciona em HTTPS ou localhost.");
           }
 
           if (!window.Html5Qrcode) {
-            throw new Error("Leitor de código de barras não carregou. Verifique a internet e recarregue a página.");
+            throw new Error("Leitor de cÃ³digo de barras nÃ£o carregou. Verifique a internet e recarregue a pÃ¡gina.");
           }
 
           const configuracao = {
@@ -697,7 +700,7 @@
           const cameras = await Html5Qrcode.getCameras();
 
           if (!cameras.length) {
-            throw new Error("Nenhuma câmera foi encontrada neste dispositivo.");
+            throw new Error("Nenhuma cÃ¢mera foi encontrada neste dispositivo.");
           }
 
           const cameraPreferida =
@@ -706,8 +709,10 @@
           leitorCamera = new Html5Qrcode("reader");
 
           const aoLerCodigo = (decodedText) => {
+            if (leituraCameraEmProcessamento) return;
             if (decodedText === ultimaLeitura) return;
 
+            leituraCameraEmProcessamento = true;
             ultimaLeitura = decodedText;
             navigator.vibrate?.(200);
             document.getElementById("codigoBarras").value = decodedText;
@@ -718,17 +723,18 @@
                   await leitorCamera.stop();
                 }
               } catch (erroParada) {
-                console.warn("Não foi possível parar a câmera:", erroParada);
+                console.warn("NÃ£o foi possÃ­vel parar a cÃ¢mera:", erroParada);
               }
 
               try {
                 await leitorCamera?.clear();
               } catch (erroLimpeza) {
-                console.warn("Não foi possível limpar o leitor:", erroLimpeza);
+                console.warn("NÃ£o foi possÃ­vel limpar o leitor:", erroLimpeza);
               }
 
               cameraAtiva = false;
               leitorCamera = null;
+              leituraCameraEmProcessamento = false;
               buscarProdutoOnline();
             }, 800);
           };
@@ -742,21 +748,22 @@
               await leitorCamera.stop();
             }
           } catch (erroParada) {
-            console.warn("Não foi possível parar a câmera após erro:", erroParada);
+            console.warn("NÃ£o foi possÃ­vel parar a cÃ¢mera apÃ³s erro:", erroParada);
           }
 
           try {
             await leitorCamera?.clear();
           } catch (erroLimpeza) {
-            console.warn("Não foi possível limpar o leitor após erro:", erroLimpeza);
+            console.warn("NÃ£o foi possÃ­vel limpar o leitor apÃ³s erro:", erroLimpeza);
           }
 
           cameraAtiva = false;
           leitorCamera = null;
+          leituraCameraEmProcessamento = false;
           reader.innerHTML = "";
 
           alert(
-            `Erro ao acessar câmera.\n\n${erro.message || erro}\n\nConfira se você permitiu a câmera no navegador e toque em Escanear Código novamente.`,
+            `Erro ao acessar cÃ¢mera.\n\n${erro.message || erro}\n\nConfira se vocÃª permitiu a cÃ¢mera no navegador e toque em Escanear CÃ³digo novamente.`,
           );
         }
       }
@@ -765,61 +772,7 @@
         const codigo = document.getElementById("codigoBarras").value.trim();
 
         if (!codigo) {
-          alert("Digite o código");
-          return;
-        }
-
-        if (bancoProdutos[codigo]) {
-          const produto = bancoProdutos[codigo];
-          document.getElementById("nome").value = produto.nome;
-          document.getElementById("marcaCadastro").value = produto.marca || "";
-          document.getElementById("categoriaCadastro").value = produto.categoria;
-          document.getElementById("estoque").value = 1;
-          return;
-        }
-
-        let nome = "";
-        let marca = "";
-        let imagem = "";
-
-        try {
-          const resposta = await fetch(`https://world.openfoodfacts.org/api/v0/product/${codigo}.json`);
-          const dados = await resposta.json();
-
-          if (dados.status === 1) {
-            nome = dados.product.product_name || "";
-            marca = dados.product.brands || "";
-            imagem = dados.product.image_url || "";
-          }
-        } catch (erro) {
-          console.error(erro);
-        }
-
-        if (!nome) {
-          alert("Produto não encontrado.\n\nPreencha os dados manualmente.");
-          return;
-        }
-
-        document.getElementById("nome").value = nome;
-        document.getElementById("marcaCadastro").value = marca;
-        document.getElementById("estoque").value = 1;
-        document.getElementById("custo").value ||= 0;
-        document.getElementById("preco").value ||= 0;
-
-        if (!document.getElementById("validade").value) {
-          const hoje = new Date();
-          hoje.setMonth(hoje.getMonth() + 6);
-          document.getElementById("validade").value = hoje.toISOString().split("T")[0];
-        }
-
-        await adicionarProduto(imagem, marca);
-      }
-
-      async function buscarProdutoOnline() {
-        const codigo = document.getElementById("codigoBarras").value.trim();
-
-        if (!codigo) {
-          alert("Digite o código");
+          alert("Digite o cÃ³digo");
           return;
         }
 
@@ -833,7 +786,7 @@
 
         if (!produtoEncontrado) {
           alert(
-            "Produto não encontrado nas bases automáticas.\n\nPreencha os dados manualmente e, depois de salvar, o app lembrará este código.",
+            "Produto nÃ£o encontrado nas bases automÃ¡ticas.\n\nPreencha os dados manualmente e, depois de salvar, o app lembrarÃ¡ este cÃ³digo.",
           );
           return;
         }
@@ -855,12 +808,45 @@
         const imagemFinal = arquivo ? await converterImagemBase64(arquivo) : imagem;
         const codigoBarras = document.getElementById("codigoBarras").value.trim();
 
+        if (cadastroEmAndamento || (codigoBarras && codigosEmCadastro.has(codigoBarras))) {
+          return;
+        }
+
         const produtoExistente = produtos.find(
           (item) => codigoBarras && String(item.codigoBarras) === String(codigoBarras),
         );
 
-        if (produtoExistente && !confirm("Já existe um produto com este código. Deseja cadastrar outro mesmo assim?")) {
+        if (produtoExistente) {
+          alert("Este código já está cadastrado. Atualize a quantidade na tabela de produtos.");
           return;
+        }
+
+        cadastroEmAndamento = true;
+        if (codigoBarras) {
+          codigosEmCadastro.add(codigoBarras);
+        }
+
+        if (codigoBarras) {
+          const { data: produtosDuplicados, error: erroDuplicidade } = await supabaseClient
+            .from("produtos")
+            .select("id")
+            .eq("codigo_barras", codigoBarras)
+            .limit(1);
+
+          if (erroDuplicidade) {
+            cadastroEmAndamento = false;
+            codigosEmCadastro.delete(codigoBarras);
+            alert("Erro ao verificar duplicidade: " + erroDuplicidade.message);
+            return;
+          }
+
+          if (produtosDuplicados?.length) {
+            cadastroEmAndamento = false;
+            codigosEmCadastro.delete(codigoBarras);
+            await carregarProdutosSupabase();
+            alert("Este código já está cadastrado. Atualize a quantidade na tabela de produtos.");
+            return;
+          }
         }
 
         const produto = {
@@ -893,6 +879,11 @@
           },
         ]);
 
+        cadastroEmAndamento = false;
+        if (codigoBarras) {
+          codigosEmCadastro.delete(codigoBarras);
+        }
+
         if (error) {
           console.error(error);
           alert("Erro ao salvar produto: " + error.message);
@@ -915,7 +906,7 @@
         }
 
         await carregarProdutosSupabase();
-        alert("Produto excluído com sucesso!");
+        alert("Produto excluÃ­do com sucesso!");
       }
 
       async function atualizarCampo(id, campo, valor) {
@@ -933,7 +924,7 @@
 
         const colunaSupabase = mapaCampos[campo];
         if (!colunaSupabase) {
-          console.error("Campo não mapeado:", campo);
+          console.error("Campo nÃ£o mapeado:", campo);
           return;
         }
 
