@@ -676,45 +676,6 @@
 
         cameraAtiva = true;
         const reader = document.getElementById("reader");
-        reader.innerHTML = "";
-
-        try {
-          const html5QrCode = new Html5Qrcode("reader");
-          await html5QrCode.start(
-            { facingMode: { ideal: "environment" } },
-            {
-              fps: 15,
-              qrbox: { width: 280, height: 180 },
-              aspectRatio: 1.7,
-              disableFlip: false,
-            },
-            (decodedText) => {
-              if (decodedText === ultimaLeitura) return;
-
-              ultimaLeitura = decodedText;
-              navigator.vibrate?.(200);
-              document.getElementById("codigoBarras").value = decodedText;
-
-              setTimeout(async () => {
-                await html5QrCode.stop();
-                cameraAtiva = false;
-                buscarProdutoOnline();
-              }, 1200);
-            },
-            () => {},
-          );
-        } catch (erro) {
-          console.error(erro);
-          cameraAtiva = false;
-          alert("Erro ao acessar câmera");
-        }
-      }
-
-      async function abrirCamera() {
-        if (cameraAtiva) return;
-
-        cameraAtiva = true;
-        const reader = document.getElementById("reader");
         reader.innerHTML = "<p style='padding:12px;color:#4b5563;'>Abrindo câmera...</p>";
 
         try {
@@ -1156,9 +1117,36 @@
 
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("./service-worker.js").catch((err) => {
-            console.error("Erro PWA", err);
+          let atualizandoPagina = false;
+
+          navigator.serviceWorker.addEventListener("controllerchange", () => {
+            if (atualizandoPagina) return;
+            atualizandoPagina = true;
+            window.location.reload();
           });
+
+          navigator.serviceWorker
+            .register("./service-worker.js")
+            .then((registro) => {
+              registro.update();
+
+              if (registro.waiting) {
+                registro.waiting.postMessage({ type: "SKIP_WAITING" });
+              }
+
+              registro.addEventListener("updatefound", () => {
+                const novoWorker = registro.installing;
+
+                novoWorker?.addEventListener("statechange", () => {
+                  if (novoWorker.state === "installed" && navigator.serviceWorker.controller) {
+                    novoWorker.postMessage({ type: "SKIP_WAITING" });
+                  }
+                });
+              });
+            })
+            .catch((err) => {
+              console.error("Erro PWA", err);
+            });
         });
       }
     </script>
