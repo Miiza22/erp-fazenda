@@ -416,6 +416,9 @@
       let usuarioAtual = null;
 
       const categorias = ["alimenticio", "bebidas", "resfriados", "higiene", "limpeza", "bazar"];
+      const LIMITE_ESTIMADO_BANCO_BYTES = 500 * 1024 * 1024;
+      const PERCENTUAL_AVISO_BANCO = 0.8;
+      const PERCENTUAL_BLOQUEIO_BANCO = 0.95;
 
       function carregarBancoProdutosLocal() {
         try {
@@ -867,6 +870,62 @@
         });
       }
 
+      function tamanhoTextoBanco(valor) {
+        const texto = String(valor || "");
+        if (!texto) return 0;
+
+        if (window.TextEncoder) {
+          return new TextEncoder().encode(texto).length;
+        }
+
+        return texto.length;
+      }
+
+      function tamanhoImagemSalva(imagem) {
+        return tamanhoTextoBanco(imagem);
+      }
+
+      function tamanhoImagensBancoAtual(idIgnorado = null) {
+        return produtos.reduce((total, produto) => {
+          if (idIgnorado !== null && String(produto.id) === String(idIgnorado)) return total;
+          return total + tamanhoImagemSalva(produto.imagem);
+        }, 0);
+      }
+
+      function estimarTamanhoBase64Arquivo(arquivo) {
+        return Math.ceil((arquivo.size || 0) * 1.37) + 120;
+      }
+
+      function formatarMegabytes(bytes) {
+        return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+      }
+
+      function validarEspacoParaImagem(arquivo, idProduto = null) {
+        if (!arquivo) return true;
+
+        const produtoAtual = produtos.find((produto) => String(produto.id) === String(idProduto));
+        const usoAtual = tamanhoImagensBancoAtual(idProduto);
+        const tamanhoAtualProduto = idProduto ? tamanhoImagemSalva(produtoAtual?.imagem) : 0;
+        const tamanhoNovaImagem = estimarTamanhoBase64Arquivo(arquivo);
+        const usoEstimado = usoAtual + tamanhoNovaImagem;
+        const percentualEstimado = usoEstimado / LIMITE_ESTIMADO_BANCO_BYTES;
+
+        if (percentualEstimado >= PERCENTUAL_BLOQUEIO_BANCO) {
+          alert(
+            `Imagem não salva.\n\nO banco ficaria perto do limite de ${formatarMegabytes(LIMITE_ESTIMADO_BANCO_BYTES)}.\nUso estimado após salvar: ${formatarMegabytes(usoEstimado)}.\n\nUse uma foto menor ou apague imagens antigas antes de tentar novamente.`,
+          );
+          return false;
+        }
+
+        if (percentualEstimado >= PERCENTUAL_AVISO_BANCO) {
+          return confirm(
+            `Atenção: o banco está ficando cheio.\n\nUso estimado após salvar esta imagem: ${formatarMegabytes(usoEstimado)} de ${formatarMegabytes(LIMITE_ESTIMADO_BANCO_BYTES)}.\nImagem anterior deste produto: ${formatarMegabytes(tamanhoAtualProduto)}.\n\nDeseja salvar mesmo assim?`,
+          );
+        }
+
+        return true;
+      }
+
       function filtrarCategoria() {
         filtroAtual = document.getElementById("filtroCategoria").value;
         atualizarTabela();
@@ -1054,8 +1113,6 @@
           return;
         }
 
-        const arquivo = document.getElementById("imagemManual").files[0];
-        const imagemFinal = arquivo ? await converterImagemBase64(arquivo) : imagem;
         const codigoBarras = document.getElementById("codigoBarras").value.trim();
         const validadeProduto = document.getElementById("validade").value || null;
         const chaveLoteAtual = chaveLote(codigoBarras, validadeProduto);
@@ -1064,6 +1121,13 @@
           alert("Informe a validade do lote antes de cadastrar.");
           return;
         }
+
+        const arquivo = document.getElementById("imagemManual").files[0];
+        if (arquivo && !validarEspacoParaImagem(arquivo)) {
+          return;
+        }
+
+        const imagemFinal = arquivo ? await converterImagemBase64(arquivo) : imagem;
 
         if (cadastroEmAndamento || codigosEmCadastro.has(chaveLoteAtual)) {
           return;
@@ -1254,16 +1318,23 @@
         const arquivo = event.target.files[0];
         if (!arquivo) return;
 
+        if (!validarEspacoParaImagem(arquivo, id)) {
+          event.target.value = "";
+          return;
+        }
+
         const base64 = await converterImagemBase64(arquivo);
         const { error } = await supabaseClient.from("produtos").update({ imagem: base64 }).eq("id", id);
 
         if (error) {
           alert("Erro ao atualizar imagem: " + error.message);
+          event.target.value = "";
           return;
         }
 
         const produto = produtos.find((item) => String(item.id) === String(id));
         if (produto) produto.imagem = base64;
+        event.target.value = "";
         atualizarTabela();
       }
 
